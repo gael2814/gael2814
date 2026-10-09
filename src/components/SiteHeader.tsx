@@ -8,6 +8,9 @@ export function SiteHeader({ logoUrl, showOrderButton = true }: { logoUrl: strin
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-1.5">
         <Link href="/" className="flex items-center gap-2" aria-label="Ay Ay Tacos home">
           <Logo logoUrl={logoUrl} size={52} />
+          <span className="hidden font-display text-xl leading-none text-forest sm:inline">
+            Ay Ay <span className="text-terracotta">Tacos</span>
+          </span>
         </Link>
         <nav className="flex items-center gap-1 text-[15px] font-semibold text-forest sm:gap-4" aria-label="Main">
           <Link href="/#menu" className="hidden rounded px-2 py-1 hover:text-terracotta sm:inline">Menu</Link>

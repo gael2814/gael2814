@@ -9,6 +9,7 @@ import { Logo } from "@/components/Logo";
 import { PreorderBadge } from "@/components/PreorderBadge";
 import { MenuBoard } from "@/components/MenuBoard";
 import { FoodPhoto } from "@/components/FoodPhoto";
+import { LoopVideo } from "@/components/LoopVideo";
 
 export const dynamic = "force-dynamic";
 
@@ -133,47 +134,81 @@ export default async function Home() {
         {/* OUR STORY */}
         <section id="story" className="scroll-mt-24 bg-cream-light" aria-labelledby="story-h">
           <div className="zigzag" aria-hidden />
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 md:grid-cols-[1fr_1.1fr]">
+
+          {/* Meet Val */}
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-8 pt-14 md:grid-cols-[0.9fr_1.1fr]">
+            <figure className="mx-auto w-full max-w-[380px] -rotate-2 bg-white p-3 pb-4 shadow-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/photos/val-van-buren-keys.jpg" alt="Val smiling in front of the doors of the new Van Buren location" loading="lazy" className="aspect-[4/5] w-full object-cover" />
+              <figcaption className="mt-3 text-center font-serif text-lg font-bold italic text-ink/80">The day we got the keys to Van Buren!</figcaption>
+            </figure>
             <div>
               <p className="font-serif text-xl font-bold italic text-terracotta">Good Food · Good People · Better Tacos</p>
-              <h2 id="story-h" className="font-display text-4xl text-forest sm:text-5xl">Our Story</h2>
-              <p className="mt-3 text-lg text-ink/80">
-                Ay Ay Tacos started small and grew one plate at a time, thanks to our neighbors in Northern Maine.
+              <h2 id="story-h" className="font-display text-4xl text-forest sm:text-5xl">Hola, I&apos;m Val!</h2>
+              <p className="mt-4 text-lg leading-relaxed text-ink/85">
+                My name is Valeria, but everybody calls me Val. I&apos;m Mexican American, born in San Diego, California, and raised
+                between two borders: Tijuana and San Diego, Mexicali and Calexico. A true border kid.
               </p>
+              <p className="mt-3 text-lg leading-relaxed text-ink/85">
+                The food I grew up with on both sides of the border is the food we make for you here in Northern Maine:
+                authentic, from scratch, and made with love.
+              </p>
+            </div>
+          </div>
+
+          {/* Journey */}
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-10 md:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <h3 className="font-display text-3xl text-forest sm:text-4xl">From our kitchen to your table</h3>
               <ol className="mt-6 space-y-5">
                 {[
-                  ["Our home kitchen", "We started out cooking everything from scratch in our own kitchen."],
-                  ["The food trailer", "Three months later, we took our tacos on the road in a little red food trailer."],
-                  [`${b.addressLine1}`, `Six months after that, we opened our doors in ${b.city}. Same recipes, same family, more room.`],
+                  ["Our home kitchen", "We started out cooking everything from scratch at home, out of our kitchen and garage."],
+                  ["The food trailer", "Three months later, we took our tacos on the road in a little red food trailer. The lines in Houlton were wild!"],
+                  [`${b.addressLine1}, ${b.city}`, "Six months after that, we opened our brick-and-mortar restaurant."],
+                  ["Coming soon: Van Buren", "We just got the keys to our second location in Van Buren. It's under construction now!"],
                 ].map(([t, d], i) => (
                   <li key={t} className="flex gap-4">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-forest font-display text-lg text-mustard">{i + 1}</span>
+                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-lg ${i === 3 ? "bg-terracotta text-cream" : "bg-forest text-mustard"}`}>{i + 1}</span>
                     <div>
-                      <h3 className="font-serif text-2xl font-bold text-ink">{t}</h3>
+                      <h4 className="font-serif text-2xl font-bold text-ink">{t}</h4>
                       <p className="text-[17px] text-ink/80">{d}</p>
                     </div>
                   </li>
                 ))}
               </ol>
-              <p className="mt-6 font-display text-2xl leading-tight text-forest">
-                Gracias for supporting <span className="text-terracotta">our small business!</span>
-              </p>
             </div>
-            <div className="relative mx-auto h-[420px] w-full max-w-[520px] sm:h-[500px]">
+            <div className="relative mx-auto h-[460px] w-full max-w-[460px] sm:h-[520px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/photos/food-trailer.jpg"
                 alt="The Ay Ay Tacos red food trailer with its Authentic Mexican Food banner"
                 loading="lazy"
-                className="absolute left-0 top-0 h-[78%] w-[62%] -rotate-2 rounded-sm border-[10px] border-white object-cover shadow-xl"
+                className="absolute left-0 top-0 h-[74%] w-[60%] -rotate-3 border-[10px] border-white object-cover shadow-xl"
               />
+              <figure className="absolute bottom-0 right-0 w-[52%] rotate-2 bg-white p-2 pb-3 shadow-xl">
+                <LoopVideo src="/videos/houlton-line.mp4" poster="/videos/houlton-line.jpg" label="Video: the line at the Ay Ay Tacos trailer in Houlton" className="aspect-[9/16] w-full object-cover" />
+                <figcaption className="mt-1 text-center font-serif text-sm font-bold italic text-ink/80">The line in Houlton. It was wild!</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          {/* Family */}
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-6 md:grid-cols-[0.8fr_1.2fr]">
+            <figure className="mx-auto w-full max-w-[340px] rotate-2 bg-white p-3 pb-4 shadow-xl md:order-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/photos/food-trailer-crowd.jpg"
-                alt="Customers lined up at the Ay Ay Tacos food trailer"
-                loading="lazy"
-                className="absolute bottom-0 right-0 h-[66%] w-[56%] rotate-3 rounded-sm border-[10px] border-white object-cover shadow-xl"
-              />
+              <img src="/photos/taylor-wayne-val.jpg" alt="Taylor, Wayne and Val" loading="lazy" className="aspect-[4/5] w-full object-cover object-top" />
+              <figcaption className="mt-3 text-center font-serif text-lg font-bold italic text-ink/80">Taylor, Wayne &amp; Val</figcaption>
+            </figure>
+            <div className="md:order-1">
+              <h3 className="font-display text-3xl text-forest sm:text-4xl">The Ay Ay family</h3>
+              <ul className="mt-5 space-y-4 text-lg text-ink/85">
+                <li><strong className="font-serif text-xl text-ink">Val</strong>, owner, the border kid behind Ay Ay Tacos.</li>
+                <li><strong className="font-serif text-xl text-ink">Wayne</strong>, our CFO, my husband and the love of my life.</li>
+                <li><strong className="font-serif text-xl text-ink">Taylor</strong>, who started with us back in the garage. We love her!</li>
+              </ul>
+              <p className="mt-6 font-display text-2xl leading-tight text-forest">
+                Gracias for supporting <span className="text-terracotta">our small business!</span>
+              </p>
             </div>
           </div>
         </section>
