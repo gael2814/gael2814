@@ -79,12 +79,15 @@ const MENU: { slug: string; name: string; subtitle?: string; items: SeedItem[] }
         prepUnits: 1,
       },
       {
-        slug: "carnitas-plate",
-        name: "Carnitas Plate",
+        // Replaces the printed menu's "Carnitas Plate" (owner update): 3 tacos for $15.
+        slug: "carnitas-tacos",
+        name: "Carnitas Tacos (3)",
         pronunciation: "kar-NEE-tahs",
         priceCents: 1500,
-        description: "Tender slow-cooked pork with rice, beans, onions, cilantro and salsa.",
+        description:
+          "Three crispy corn tortillas layered with beans and golden, crispy slow-cooked pork, topped with pickled red onions, fresh onion, cilantro, queso fresco and our creamy sauce.",
         prepUnits: 1,
+        tacosPerItem: 3,
       },
       {
         slug: "tostadas-de-tinga",
