@@ -14,7 +14,7 @@ export async function sendEmail(email: OutgoingEmail): Promise<"sent" | "logged"
   let error: string | null = null;
 
   if (!key) {
-    console.info(`[email:not-sent] RESEND_API_KEY missing. To: ${email.to} Subject: ${email.subject}\n${email.text}`);
+    if (process.env.NODE_ENV !== "test") console.info(`[email:not-sent] RESEND_API_KEY missing. To: ${email.to} Subject: ${email.subject}\n${email.text}`);
   } else {
     try {
       const res = await fetch("https://api.resend.com/emails", {
