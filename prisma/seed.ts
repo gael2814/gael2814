@@ -145,8 +145,10 @@ const MENU: { slug: string; name: string; subtitle?: string; items: SeedItem[] }
       {
         slug: "empanada",
         name: "Empanada",
+        pronunciation: "em-pah-NAH-dah",
         priceCents: 500,
-        description: "One flaky pastry turnover with a savory filling.",
+        // Owner update: picadillo filling (printed menu said "a savory filling").
+        description: "One golden, crispy turnover filled with picadillo (pee-kah-DEE-yoh): seasoned ground beef with potatoes.",
         prepUnits: 0.25,
       },
     ],
