@@ -35,6 +35,8 @@ export const cartSchema = z.object({
     .max(40),
 });
 
+export const MAX_TIP_CENTS = 50_000;
+
 export const checkoutSchema = cartSchema.extend({
   customerName: z.string().trim().min(2, "Please enter your name").max(80),
   customerPhone: z
@@ -47,7 +49,21 @@ export const checkoutSchema = cartSchema.extend({
   idempotencyKey: z.string().min(8).max(100),
   /** Customer asked for a text message when the order is ready. */
   smsOptIn: z.boolean().optional().default(false),
+  /** Optional tip for the team tip pool: a percent of the food subtotal, or a custom dollar amount. */
+  tip: z
+    .union([
+      z.object({ type: z.literal("percent"), percent: z.union([z.literal(0), z.literal(10), z.literal(15), z.literal(20)]) }),
+      z.object({ type: z.literal("custom"), cents: z.number().int().min(0).max(MAX_TIP_CENTS) }),
+    ])
+    .optional(),
 });
+
+/** Tip in cents, always computed on the server from the food subtotal (before tax). Tips are not taxed. */
+export function computeTipCents(subtotalCents: number, tip: CheckoutInput["tip"]): number {
+  if (!tip) return 0;
+  if (tip.type === "percent") return Math.round((subtotalCents * tip.percent) / 100);
+  return Math.min(tip.cents, MAX_TIP_CENTS);
+}
 export type CheckoutInput = z.input<typeof checkoutSchema>;
 
 /** Active (paid, or held during payment) orders for a service day. */
@@ -186,6 +202,7 @@ export async function createCheckout(input: CheckoutInput, appUrl: string) {
         pickupAt = input.requestedPickupAt;
       }
 
+      const tipCents = computeTipCents(priced.subtotalCents, input.tip);
       return tx.order.create({
         data: {
           publicToken: randomBytes(18).toString("base64url"),
@@ -200,7 +217,8 @@ export async function createCheckout(input: CheckoutInput, appUrl: string) {
           smsOptIn: input.smsOptIn ?? false,
           subtotalCents: priced.subtotalCents,
           taxCents: priced.taxCents,
-          totalCents: priced.totalCents,
+          tipCents,
+          totalCents: priced.totalCents + tipCents,
           taxRateBps: priced.taxRateBps,
           workUnits: priced.units,
           paymentProvider: provider.name,
@@ -229,6 +247,7 @@ export async function createCheckout(input: CheckoutInput, appUrl: string) {
       orderNumber: order.number,
       lines: order.items.map((i) => ({ name: i.name, unitCents: i.unitCents, quantity: i.quantity })),
       taxCents: order.taxCents,
+      tipCents: order.tipCents,
       taxLabel: `${settings.tax.label} (${(order.taxRateBps / 100).toFixed(2)}%)`,
       customerEmail: order.customerEmail,
       pickupLabel: formatTime(order.pickupAt),
@@ -337,6 +356,7 @@ async function emailOrder(orderId: string) {
     items: order.items.map((i) => ({ name: i.name, quantity: i.quantity, unitCents: i.unitCents })),
     subtotalCents: order.subtotalCents,
     taxCents: order.taxCents,
+    tipCents: order.tipCents,
     totalCents: order.totalCents,
     taxLabel: `${settings.tax.label} (${(order.taxRateBps / 100).toFixed(2)}%)`,
     notes: order.notes,

@@ -81,6 +81,7 @@ export default async function StatusPage({ params }: { params: Promise<{ token: 
           <dl className="mt-2 space-y-1 border-t-2 border-forest pt-2 text-sm">
             <div className="flex justify-between"><dt>Subtotal</dt><dd>{formatCentsExact(order.subtotalCents)}</dd></div>
             <div className="flex justify-between"><dt>Sales tax</dt><dd>{formatCentsExact(order.taxCents)}</dd></div>
+            {order.tipCents > 0 && <div className="flex justify-between"><dt>Tip for the team</dt><dd>{formatCentsExact(order.tipCents)}</dd></div>}
             <div className="flex justify-between font-display text-lg text-forest"><dt>Total</dt><dd>{formatCentsExact(order.totalCents)}</dd></div>
           </dl>
           {order.notes && <p className="mt-3 text-sm"><strong>Notes:</strong> {order.notes}</p>}

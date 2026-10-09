@@ -9,6 +9,7 @@ export type SalesOrder = {
   paymentStatus: string;
   subtotalCents: number;
   taxCents: number;
+  tipCents: number;
   totalCents: number;
   refundedCents: number;
   items: { menuItemId: string; name: string; quantity: number; unitCents: number }[];
@@ -20,6 +21,8 @@ export type SalesReport = {
   netCents: number; // gross - refunds
   netSalesExTaxCents: number; // subtotal of non-cancelled orders
   taxCents: number;
+  /** Tips on orders that weren't cancelled: the amount for the team tip pool. */
+  tipsCents: number;
   orders: number; // paid orders, excluding cancelled
   averageOrderCents: number;
   itemsSold: number;
@@ -27,7 +30,7 @@ export type SalesReport = {
   refundedOrders: number;
   bestSellers: { name: string; quantity: number; revenueCents: number }[];
   byPickupTime: { label: string; orders: number; revenueCents: number }[];
-  daily: { date: string; orders: number; revenueCents: number }[];
+  daily: { date: string; orders: number; revenueCents: number; tipsCents: number }[];
   weekly: { weekStart: string; orders: number; revenueCents: number }[];
 };
 
@@ -49,36 +52,39 @@ export function buildSalesReport(all: SalesOrder[]): SalesReport {
     }
 
   const bySlot = new Map<string, { label: string; sort: number; orders: number; revenueCents: number }>();
-  const daily = new Map<string, { orders: number; revenueCents: number }>();
+  const daily = new Map<string, { orders: number; revenueCents: number; tipsCents: number }>();
   const weekly = new Map<string, { orders: number; revenueCents: number }>();
   for (const o of kept) {
     const t = DateTime.fromJSDate(o.pickupAt, { zone: TZ });
     const key = t.toFormat("HH:mm");
     const s = bySlot.get(key) ?? { label: t.toFormat("h:mm a"), sort: t.hour * 60 + t.minute, orders: 0, revenueCents: 0 };
     s.orders++;
-    s.revenueCents += o.totalCents - o.refundedCents;
+    s.revenueCents += o.totalCents - o.tipCents - o.refundedCents;
     bySlot.set(key, s);
 
-    const d = daily.get(o.serviceDate) ?? { orders: 0, revenueCents: 0 };
+    const d = daily.get(o.serviceDate) ?? { orders: 0, revenueCents: 0, tipsCents: 0 };
     d.orders++;
-    d.revenueCents += o.totalCents - o.refundedCents;
+    d.revenueCents += o.totalCents - o.tipCents - o.refundedCents;
+    d.tipsCents += o.tipCents;
     daily.set(o.serviceDate, d);
 
     const wk = DateTime.fromISO(o.serviceDate, { zone: TZ }).startOf("week").toISODate()!;
     const w = weekly.get(wk) ?? { orders: 0, revenueCents: 0 };
     w.orders++;
-    w.revenueCents += o.totalCents - o.refundedCents;
+    w.revenueCents += o.totalCents - o.tipCents - o.refundedCents;
     weekly.set(wk, w);
   }
 
   const orders = kept.length;
-  const keptNet = kept.reduce((s, o) => s + o.totalCents - o.refundedCents, 0);
+  const keptTips = kept.reduce((s, o) => s + o.tipCents, 0);
+  const keptNet = kept.reduce((s, o) => s + o.totalCents - o.tipCents - o.refundedCents, 0);
   return {
     grossCents,
     refundsCents,
-    netCents: grossCents - refundsCents,
+    netCents: grossCents - refundsCents - keptTips, // food + tax; tips are reported separately
     netSalesExTaxCents: kept.reduce((s, o) => s + o.subtotalCents, 0),
     taxCents: kept.reduce((s, o) => s + o.taxCents, 0),
+    tipsCents: kept.reduce((s, o) => s + o.tipCents, 0),
     orders,
     averageOrderCents: orders ? Math.round(keptNet / orders) : 0,
     itemsSold: kept.reduce((s, o) => s + o.items.reduce((a, i) => a + i.quantity, 0), 0),

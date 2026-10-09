@@ -37,6 +37,7 @@ export async function getPublicOrder(token: string, verifyPayment = true) {
     items: order.items.map((i) => ({ name: i.name, quantity: i.quantity, unitCents: i.unitCents })),
     subtotalCents: order.subtotalCents,
     taxCents: order.taxCents,
+    tipCents: order.tipCents,
     totalCents: order.totalCents,
     refundedCents: order.refundedCents,
     notes: order.notes,

@@ -26,6 +26,7 @@ export default async function TestPayment({ searchParams }: { searchParams: Prom
             <li key={i.id} className="flex justify-between"><span>{i.quantity} × {i.name}</span><span>{formatCentsExact(i.unitCents * i.quantity)}</span></li>
           ))}
           <li className="flex justify-between text-slate-500"><span>Sales tax</span><span>{formatCentsExact(order.taxCents)}</span></li>
+          {order.tipCents > 0 && <li className="flex justify-between text-slate-500"><span>Tip for the team</span><span>{formatCentsExact(order.tipCents)}</span></li>}
         </ul>
         <div className="mt-2 flex justify-between border-t pt-2 text-lg font-bold"><span>Total</span><span>{formatCentsExact(order.totalCents)}</span></div>
         <p className="mt-2 text-sm text-slate-600">Estimated pickup: {formatTime(order.pickupAt)}</p>

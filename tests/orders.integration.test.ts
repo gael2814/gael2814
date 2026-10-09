@@ -428,3 +428,54 @@ describe("ready notifications and kitchen timeline", () => {
     });
   });
 });
+
+describe("tips (team tip pool)", () => {
+  it("adds a 15% tip on the food subtotal, untaxed, and shows it on the receipt", async () => {
+    process.env.RESEND_API_KEY = "re_test";
+    const sent: { text: string; html: string }[] = [];
+    const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async (_u, init) => {
+      sent.push(JSON.parse(String((init as RequestInit).body)));
+      return new Response("{}", { status: 200 });
+    });
+    try {
+      const c = await createCheckout(
+        { items: [{ menuItemId: m.quesa.id, quantity: 2 }, { menuItemId: m.jamaica.id, quantity: 1 }], tip: { type: "percent", percent: 15 }, ...customer() },
+        APP,
+      );
+      const o = await prisma.order.findUniqueOrThrow({ where: { id: c.orderId } });
+      expect(o.subtotalCents).toBe(5000);
+      expect(o.taxCents).toBe(400); // tax on food only
+      expect(o.tipCents).toBe(750); // 15% of $50
+      expect(o.totalCents).toBe(6150);
+      await markOrderPaid({ orderId: c.orderId, paymentIntentId: "pi_tip" });
+      expect(sent[0].text).toContain("Tip for the team: $7.50");
+      expect(sent[0].text).toContain("Total paid: $61.50");
+      expect(sent[0].html).toContain("Gracias for your tip!");
+    } finally {
+      spy.mockRestore();
+      delete process.env.RESEND_API_KEY;
+    }
+  });
+
+  it("accepts a custom tip, defaults to no tip, and rejects absurd amounts", async () => {
+    const a = await createCheckout({ items: [{ menuItemId: m.quesa.id, quantity: 1 }], tip: { type: "custom", cents: 500 }, ...customer() }, APP);
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: a.orderId } })).totalCents).toBe(2200 + 176 + 500);
+    const b = await createCheckout({ items: [{ menuItemId: m.quesa.id, quantity: 1 }], ...customer() }, APP);
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: b.orderId } })).tipCents).toBe(0);
+    const { checkoutSchema } = await import("@/lib/orders");
+    expect(checkoutSchema.safeParse({ items: [{ menuItemId: "x", quantity: 1 }], ...customer(), tip: { type: "custom", cents: 10_000_000 } }).success).toBe(false);
+    expect(checkoutSchema.safeParse({ items: [{ menuItemId: "x", quantity: 1 }], ...customer(), tip: { type: "percent", percent: 99 } }).success).toBe(false);
+  });
+
+  it("sales report keeps tips separate from restaurant revenue", async () => {
+    const { buildSalesReport } = await import("@/lib/reports/sales");
+    await createCheckout({ items: [{ menuItemId: m.quesa.id, quantity: 2 }], tip: { type: "percent", percent: 20 }, ...customer() }, APP).then((c) =>
+      markOrderPaid({ orderId: c.orderId, paymentIntentId: "pi_s" }),
+    );
+    const orders = await prisma.order.findMany({ include: { items: true } });
+    const r = buildSalesReport(orders);
+    expect(r.tipsCents).toBe(880); // 20% of $44
+    expect(r.netCents).toBe(4400 + 352); // food + tax only
+    expect(r.daily[0].tipsCents).toBe(880);
+  });
+});

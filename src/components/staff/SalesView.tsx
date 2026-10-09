@@ -64,7 +64,7 @@ export function SalesView() {
       ) : (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {stat("Preorder revenue", money(report.netCents), "Collected minus refunds, incl. tax")}
+            {stat("Preorder revenue", money(report.netCents), "Food + tax, minus refunds (tips not included)")}
             {stat("Orders", String(report.orders), "Paid, not cancelled")}
             {stat("Average order", money(report.averageOrderCents))}
             {stat("Items sold", String(report.itemsSold))}
@@ -72,6 +72,7 @@ export function SalesView() {
             {stat("Sales tax collected", money(report.taxCents))}
             {stat("Cancelled orders", String(report.cancelledOrders))}
             {stat("Refunds", money(report.refundsCents), `${report.refundedOrders} orders`)}
+            {stat("Tips for the team", money(report.tipsCents), "Tip pool, shared by the whole crew")}
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
@@ -86,7 +87,7 @@ export function SalesView() {
             </Card>
             <Card>
               <h2 className="font-display text-lg text-forest">Daily sales</h2>
-              <Bars label="Daily" rows={report.daily.map((d) => ({ label: d.date.slice(5), value: d.revenueCents, sub: `${d.orders} · ${money(d.revenueCents)}` }))} />
+              <Bars label="Daily" rows={report.daily.map((d) => ({ label: d.date.slice(5), value: d.revenueCents, sub: `${d.orders} · ${money(d.revenueCents)}${d.tipsCents ? ` · tips ${money(d.tipsCents)}` : ""}` }))} />
             </Card>
             <Card>
               <h2 className="font-display text-lg text-forest">Weekly sales</h2>

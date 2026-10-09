@@ -28,6 +28,12 @@ export const stripeProvider: PaymentProvider = {
         price_data: { currency: "usd", unit_amount: req.taxCents, product_data: { name: req.taxLabel } },
       });
     }
+    if (req.tipCents > 0) {
+      line_items.push({
+        quantity: 1,
+        price_data: { currency: "usd", unit_amount: req.tipCents, product_data: { name: "Tip for the Ay Ay team (shared tip pool)" } },
+      });
+    }
     // Card, Apple Pay and Google Pay are offered automatically by Stripe Checkout
     // when enabled in the Stripe Dashboard (Settings → Payment methods).
     const session = await stripe.checkout.sessions.create(

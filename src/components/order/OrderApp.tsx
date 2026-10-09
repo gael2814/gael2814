@@ -309,6 +309,10 @@ function Checkout({
   const [pickup, setPickup] = useState<number | null>(null);
   const [form, setForm] = useState({ customerName: "", customerPhone: "", customerEmail: "", notes: "", smsOptIn: false });
   const [submitting, setSubmitting] = useState(false);
+  const [tipChoice, setTipChoice] = useState<0 | 10 | 15 | 20 | "custom">(0);
+  const [customTip, setCustomTip] = useState("");
+  const customTipCents = Math.min(50_000, Math.max(0, Math.round((Number(customTip.replace(/[$,\s]/g, "")) || 0) * 100)));
+  const tipCents = !quote ? 0 : tipChoice === "custom" ? customTipCents : Math.round((quote.subtotalCents * tipChoice) / 100);
   const [error, setError] = useState<string | null>(null);
   const idem = useRef<string>("");
   const cartKey = JSON.stringify(lines.map((l) => [l.item.id, l.quantity]));
@@ -358,6 +362,7 @@ function Checkout({
           items: lines.map((l) => ({ menuItemId: l.item.id, quantity: l.quantity })),
           requestedPickupAt: pickup,
           idempotencyKey: idem.current,
+          tip: tipChoice === "custom" ? { type: "custom", cents: customTipCents } : { type: "percent", percent: tipChoice },
         }),
       });
       const d = await r.json();
@@ -450,6 +455,41 @@ function Checkout({
               )}
             </fieldset>
 
+            <fieldset>
+              <legend className="font-display text-xl text-terracotta">Add a tip for the team?</legend>
+              <div className="mt-2 grid grid-cols-5 gap-2" role="radiogroup" aria-label="Tip amount">
+                {([0, 10, 15, 20, "custom"] as const).map((t) => {
+                  const on = tipChoice === t;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => setTipChoice(t)}
+                      className={`rounded-xl border-2 px-1 py-2 text-center text-sm font-bold leading-tight ${on ? "border-forest bg-forest text-cream" : "border-forest/30 bg-white text-forest"}`}
+                    >
+                      {t === 0 ? "No tip" : t === "custom" ? "Other" : `${t}%`}
+                      {typeof t === "number" && t > 0 && quote && (
+                        <span className="block text-xs font-normal opacity-80">{formatCentsExact(Math.round((quote.subtotalCents * t) / 100))}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {tipChoice === "custom" && (
+                <label className="mt-2 block text-sm font-semibold">
+                  Tip amount ($)
+                  <input inputMode="decimal" className={input} placeholder="5.00" value={customTip} onChange={(e) => setCustomTip(e.target.value)} />
+                </label>
+              )}
+              <p className="mt-2 rounded-xl bg-mustard/25 p-3 text-sm leading-snug">
+                <strong>We share our tips.</strong> Ay Ay Tacos works with a <strong>tip pool</strong>: every tip goes to the whole team and is divided
+                at the end of the day among our dishwashing crew, prep crew, cashiers, bussers and everyone who makes your meal happen.
+                We love you, and thank you for this extra gift! <a href="/#tip-pool" className="underline">Learn more</a>
+              </p>
+            </fieldset>
+
             <p className="rounded-xl border-2 border-dashed border-terracotta p-3 text-xs" role="note">
               <strong>Allergies:</strong> {allergyNotice}
             </p>
@@ -461,7 +501,7 @@ function Checkout({
               disabled={submitting || !quote || pickup == null}
               className="w-full rounded-full bg-terracotta py-4 font-display text-xl uppercase tracking-wide text-cream shadow-stamp hover:bg-terracotta-dark disabled:cursor-not-allowed disabled:bg-ink/30"
             >
-              {submitting ? "Starting secure payment…" : quote ? `Pay ${formatCentsExact(quote.totalCents)} securely` : "Pay securely"}
+              {submitting ? "Starting secure payment…" : quote ? `Pay ${formatCentsExact(quote.totalCents + tipCents)} securely` : "Pay securely"}
             </button>
             <p className="text-center text-xs text-ink/60">Secure payment by Stripe · Card, Apple Pay & Google Pay. We never see or store your card number.</p>
           </form>
@@ -483,7 +523,8 @@ function Checkout({
               <dl className="mt-3 space-y-1 border-t-2 border-forest pt-3">
                 <div className="flex justify-between"><dt>Subtotal</dt><dd>{formatCentsExact(quote.subtotalCents)}</dd></div>
                 <div className="flex justify-between"><dt>{taxLabel} ({(quote.taxRateBps / 100).toFixed(2)}%)</dt><dd>{formatCentsExact(quote.taxCents)}</dd></div>
-                <div className="flex justify-between font-display text-xl text-forest"><dt>Total</dt><dd>{formatCentsExact(quote.totalCents)}</dd></div>
+                {tipCents > 0 && <div className="flex justify-between"><dt>Tip for the team</dt><dd>{formatCentsExact(tipCents)}</dd></div>}
+                <div className="flex justify-between font-display text-xl text-forest"><dt>Total</dt><dd>{formatCentsExact(quote.totalCents + tipCents)}</dd></div>
               </dl>
             )}
           </aside>

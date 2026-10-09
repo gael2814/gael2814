@@ -48,6 +48,10 @@ Built with Next.js, TypeScript, Tailwind CSS, PostgreSQL + Prisma, Stripe Checko
 * Refunds (full or partial) can be issued from the dashboard. Refunds made in the Stripe Dashboard are synced back automatically.
 * Payments are behind a provider interface (`src/lib/payments/`), so Square or Clover can be added later.
 
+### Sales tax and tips
+* **Sales tax:** Maine sales tax (8%, adjustable in Business settings) is calculated on the server from the food subtotal. Customers see it before paying, and it's charged as its own line in Stripe.
+* **Tips:** at checkout customers can choose No tip, 10%, 15%, 20% or a custom amount. Percent tips are based on the food subtotal and are not taxed. The amount is always recalculated on the server, and the checkout explains the **tip pool**. Tips show on receipts and order details. In **Sales**, tips are reported separately ("Tips for the team", plus tips per day) so you know exactly what to divide among the crew.
+
 ### Emails
 * After payment, the customer gets a branded confirmation. It includes their name, order number, every item with quantities, subtotal, Maine sales tax, total paid, estimated pickup time and the restaurant address.
 * If staff change the pickup time, an updated email is sent automatically. Cancellations and refunds also send an email.

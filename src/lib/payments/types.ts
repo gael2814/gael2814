@@ -10,6 +10,8 @@ export type CheckoutRequest = {
   orderNumber: number;
   lines: CheckoutLine[];
   taxCents: number;
+  /** Tip for the team tip pool (0 if none). */
+  tipCents: number;
   taxLabel: string;
   customerEmail: string;
   pickupLabel: string;

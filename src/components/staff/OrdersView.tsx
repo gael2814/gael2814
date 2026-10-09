@@ -8,7 +8,7 @@ type Row = {
   status: string; paymentStatus: string; totalCents: number; refundedCents: number; itemCount: number; summary: string;
 };
 type Detail = Row & {
-  subtotalCents: number; taxCents: number; notes: string | null; paidAt: string | null; paymentIntentId: string | null; cancelReason: string | null;
+  subtotalCents: number; taxCents: number; tipCents: number; notes: string | null; paidAt: string | null; paymentIntentId: string | null; cancelReason: string | null;
   items: { id: string; name: string; quantity: number; unitCents: number }[];
   events: { id: string; type: string; message: string; actor: string | null; createdAt: string }[];
   emails: { id: string; subject: string; status: string; to: string; createdAt: string; error: string | null }[];
@@ -108,6 +108,7 @@ export function OrdersView({ canRefund, today }: { canRefund: boolean; today: st
                 {sel.items.map((i) => <li key={i.id} className="flex justify-between"><span>{i.quantity} × {i.name}</span><span>{money(i.unitCents * i.quantity)}</span></li>)}
                 <li className="flex justify-between text-ink/70"><span>Subtotal</span><span>{money(sel.subtotalCents)}</span></li>
                 <li className="flex justify-between text-ink/70"><span>Tax</span><span>{money(sel.taxCents)}</span></li>
+                {sel.tipCents > 0 && <li className="flex justify-between text-ink/70"><span>Tip (tip pool)</span><span>{money(sel.tipCents)}</span></li>}
                 <li className="flex justify-between font-bold"><span>Total</span><span>{money(sel.totalCents)}</span></li>
                 {sel.refundedCents > 0 && <li className="flex justify-between text-terracotta"><span>Refunded</span><span>−{money(sel.refundedCents)}</span></li>}
               </ul>

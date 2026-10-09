@@ -211,6 +211,27 @@ export default async function Home() {
               </p>
             </div>
           </div>
+
+          {/* Tip pool */}
+          <div id="tip-pool" className="scroll-mt-24 bg-mustard">
+            <div className="mx-auto grid max-w-6xl gap-6 px-4 py-12 md:grid-cols-[1fr_1.4fr] md:items-center">
+              <div>
+                <p className="font-serif text-xl font-bold italic text-brick">We all work as a team</p>
+                <h3 className="font-display text-4xl text-forest sm:text-5xl">Our tip pool</h3>
+              </div>
+              <div className="space-y-3 text-lg leading-relaxed text-ink">
+                <p>
+                  Ay Ay Tacos works with a <strong>tip pool</strong>. That means every tip, whether it&apos;s left at the counter or added to an
+                  online order, goes into one shared pot instead of to a single person.
+                </p>
+                <p>
+                  At the end of the day, the tips are divided among <strong>all our team members</strong>: our dishwashing crew, prep crew,
+                  cashiers, bussers and everyone who helps get your food to you.
+                </p>
+                <p className="font-serif text-xl font-bold italic text-forest">We love you, and thank you for giving them this additional gift!</p>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* VISIT */}

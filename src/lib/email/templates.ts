@@ -10,6 +10,7 @@ export type EmailOrder = {
   items: { name: string; quantity: number; unitCents: number }[];
   subtotalCents: number;
   taxCents: number;
+  tipCents: number;
   totalCents: number;
   taxLabel: string;
   notes: string | null;
@@ -61,6 +62,7 @@ function itemsTable(o: EmailOrder): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:15px">${rows}
 <tr><td style="padding:8px 0 2px">Subtotal</td><td style="text-align:right;padding:8px 0 2px">${formatCentsExact(o.subtotalCents)}</td></tr>
 <tr><td style="padding:2px 0">${esc(o.taxLabel)}</td><td style="text-align:right;padding:2px 0">${formatCentsExact(o.taxCents)}</td></tr>
+${o.tipCents > 0 ? `<tr><td style="padding:2px 0">Tip for the team</td><td style="text-align:right;padding:2px 0">${formatCentsExact(o.tipCents)}</td></tr>` : ""}
 <tr><td style="padding:6px 0;font-weight:bold;font-size:17px;color:${C.green}">Total paid</td><td style="text-align:right;padding:6px 0;font-weight:bold;font-size:17px;color:${C.green}">${formatCentsExact(o.totalCents)}</td></tr>
 </table>`;
 }
@@ -77,7 +79,7 @@ function itemsText(o: EmailOrder): string {
 }
 
 function totalsText(o: EmailOrder): string {
-  return `Subtotal: ${formatCentsExact(o.subtotalCents)}\n${o.taxLabel}: ${formatCentsExact(o.taxCents)}\nTotal paid: ${formatCentsExact(o.totalCents)}`;
+  return `Subtotal: ${formatCentsExact(o.subtotalCents)}\n${o.taxLabel}: ${formatCentsExact(o.taxCents)}\n${o.tipCents > 0 ? `Tip for the team: ${formatCentsExact(o.tipCents)}\n` : ""}Total paid: ${formatCentsExact(o.totalCents)}`;
 }
 
 export function confirmationEmail(o: EmailOrder, b: BusinessSettings) {
@@ -89,6 +91,7 @@ ${pickupBox(o)}
 <div style="font-weight:bold;color:${C.green};margin:8px 0 4px">Your order</div>
 ${itemsTable(o)}
 ${o.notes ? `<p style="font-size:14px;margin:12px 0 0"><strong>Your notes:</strong> ${esc(o.notes)}</p>` : ""}
+${o.tipCents > 0 ? `<p style="margin:12px 0 0;font-size:14px;color:${C.terracotta}"><strong>Gracias for your tip!</strong> It goes into our tip pool and is shared by the whole team.</p>` : ""}
 <p style="margin:16px 0 4px"><strong>Please give us your order number (#${o.number}) when picking up.</strong></p>
 <p style="margin:0 0 8px;font-size:14px"><a style="color:${C.terracotta}" href="${esc(o.statusUrl)}">Check your order status</a></p>`;
   const text = `Hi ${o.customerName},

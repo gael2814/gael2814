@@ -134,7 +134,8 @@ model Order {
 
   subtotalCents Int
   taxCents      Int
-  totalCents    Int
+  tipCents      Int           @default(0) // goes to the team tip pool; not taxed
+  totalCents    Int           // subtotal + tax + tip
   taxRateBps    Int           // tax rate used, in basis points (800 = 8%)
   refundedCents Int           @default(0)
   workUnits     Float         // total kitchen workload for capacity planning
