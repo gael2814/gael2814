@@ -35,8 +35,8 @@ Built with Next.js, TypeScript, Tailwind CSS, PostgreSQL + Prisma, Stripe Checko
 ### Smart pickup times
 * Kitchen work is measured in **workload units**: **1 unit = 1 quesabirria order (3 tacos)**.
 * Capacity starts at **8 units per 15-minute interval**, from your benchmark of 8 quesabirria orders every 15 minutes.
-* Each menu item has its own kitchen speed, entered in Menu → Edit as "8 orders take 8 minutes". Carnitas are about twice as fast as quesabirrias. All dishes share **one kitchen line**, so a fast dish still waits behind orders already booked. For example, after 30 quesabirria orders, a carnitas order gets 11:45, not 11:00.
-* The kitchen can start cooking before opening (default **10:45 AM**, adjustable). Customers still never pick up before 11:00.
+* Each menu item has its own kitchen speed, entered in Menu → Edit as "8 orders take 8 minutes". Carnitas are about twice as fast as quesabirrias. All dishes share **one kitchen line**, so a fast dish still waits behind orders already booked. For example, after 30 quesabirria orders, a carnitas order gets 11:30, not 11:00.
+* The kitchen starts cooking at **10:30 AM**, right when preorders close (adjustable in Schedule). That means **16 quesabirria orders** can be ready for the 11:00 pickup. Customers still never pick up before 11:00.
 * Orders are cooked in pickup-time order. A new order gets the **earliest time at which it, and every order already booked, can realistically be ready**. When 11:00 is full, the customer is offered 11:15 or the next open time. Customers may also choose a later time.
 * Customers see the estimated pickup time **before they pay**.
 * **No overbooking:** checkout holds the capacity while the customer pays. A database lock makes simultaneous checkouts wait their turn. Failed, cancelled or abandoned payments release the hold automatically (holds expire after 31 minutes).

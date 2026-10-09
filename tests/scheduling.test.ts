@@ -114,6 +114,15 @@ describe("pickup scheduling", () => {
       expect(fmt(earliestPickup(input(existing), CARNITAS))).toBe("11:45");
     });
 
+    it("with cooking starting at 10:30: 16 quesabirrias ready at 11:00, and a carnitas after 30 quesabirrias at 11:30", () => {
+      const at1030 = (existing: { pickupAt: number; units: number }[]) => input(existing, { kitchenStart: "10:30" });
+      const existing: { pickupAt: number; units: number }[] = [];
+      for (let i = 0; i < 30; i++) existing.push({ pickupAt: earliestPickup(at1030(existing), QUESA)!, units: QUESA });
+      expect(existing.filter((o) => fmt(o.pickupAt) === "11:00")).toHaveLength(16);
+      // 30 orders × 15/8 min ≈ 56 min from 10:30 → done ~11:26
+      expect(fmt(earliestPickup(at1030(existing), CARNITAS))).toBe("11:30");
+    });
+
     it("a carnitas order can't jump ahead of quesabirrias that already fill the earlier times", () => {
       const existing = book(Array(16).fill(QUESA)); // fills 11:00 and 11:15 exactly
       expect(fmt(earliestPickup(input(existing), CARNITAS))).toBe("11:30");

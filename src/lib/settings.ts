@@ -115,7 +115,7 @@ export const DEFAULT_SETTINGS: AllSettings = {
   },
   kitchen: {
     capacityUnitsPerSlot: 8,
-    kitchenStart: "10:45",
+    kitchenStart: "10:30", // owner: cooking starts at 10:30 so the first orders are ready at 11:00
     maxOrdersPerSlot: null,
     holdMinutes: 31,
     dueSoonMinutes: 10,

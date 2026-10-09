@@ -101,19 +101,20 @@ describe("pricing and availability", () => {
 });
 
 describe("capacity", () => {
-  it("assigns 11:00 until capacity, then 11:15 (8 quesabirria orders / 15 min)", async () => {
-    for (let i = 0; i < 8; i++) {
+  it("assigns 11:00 until capacity, then 11:15 (8 quesabirria orders / 15 min, cooking from 10:30)", async () => {
+    // Kitchen starts at 10:30 → two intervals before 11:00 → 16 orders ready at 11:00
+    for (let i = 0; i < 16; i++) {
       const c = await paidOrder([{ menuItemId: m.quesa.id, quantity: 1 }]);
       expect(fmt(c.pickupAt)).toBe("11:00");
     }
-    const ninth = await paidOrder([{ menuItemId: m.quesa.id, quantity: 1 }]);
-    expect(fmt(ninth.pickupAt)).toBe("11:15");
+    const next = await paidOrder([{ menuItemId: m.quesa.id, quantity: 1 }]);
+    expect(fmt(next.pickupAt)).toBe("11:15");
   });
 
   it("is never overbooked", async () => {
     for (let i = 0; i < 30; i++) await paidOrder([{ menuItemId: m.quesa.id, quantity: 2 }]);
     const orders = await prisma.order.findMany({ where: { status: "CONFIRMED" }, orderBy: { pickupAt: "asc" } });
-    const start = DateTime.fromISO("2026-10-12T10:45", { zone: "America/New_York" }).toMillis();
+    const start = DateTime.fromISO("2026-10-12T10:30", { zone: "America/New_York" }).toMillis();
     let cum = 0;
     for (const o of orders) {
       cum += o.workUnits;
@@ -125,13 +126,13 @@ describe("capacity", () => {
   it("two simultaneous customers cannot reserve the same last capacity", async () => {
     // Fill 11:00–12:45 completely, leaving exactly 8 units at 13:00
     await saveSetting("kitchen", { capacityUnitsPerSlot: 8 });
-    const start = DateTime.fromISO("2026-10-12T10:45", { zone: "America/New_York" });
-    const cap1245 = 8 * 8; // 10:45 → 12:45 = 8 intervals
+    const start = DateTime.fromISO("2026-10-12T10:30", { zone: "America/New_York" });
+    const cap1245 = 8 * 9; // 10:30 → 12:45 = 9 intervals
     await prisma.order.create({
       data: {
         publicToken: "filler-token-0000000000",
         serviceDate: "2026-10-12",
-        pickupAt: start.plus({ minutes: 120 }).toJSDate(),
+        pickupAt: start.plus({ minutes: 135 }).toJSDate(),
         status: "CONFIRMED",
         paymentStatus: "PAID",
         customerName: "Filler",
@@ -154,16 +155,16 @@ describe("capacity", () => {
   });
 
   it("a requested pickup time that just filled up is refused with alternatives", async () => {
-    const q = await quoteOrder([{ menuItemId: m.quesa.id, quantity: 8 }]);
+    const q = await quoteOrder([{ menuItemId: m.quesa.id, quantity: 16 }]);
     expect(fmt(q.pickupOptions[0])).toBe("11:00");
-    await paidOrder([{ menuItemId: m.quesa.id, quantity: 8 }]);
+    await paidOrder([{ menuItemId: m.quesa.id, quantity: 16 }]);
     await expect(
-      createCheckout({ items: [{ menuItemId: m.quesa.id, quantity: 8 }], requestedPickupAt: q.pickupOptions[0], ...customer() }, APP),
+      createCheckout({ items: [{ menuItemId: m.quesa.id, quantity: 16 }], requestedPickupAt: q.pickupOptions[0], ...customer() }, APP),
     ).rejects.toMatchObject({ code: "pickup_unavailable" });
   });
 
   it("failed and abandoned payments release capacity", async () => {
-    const a = await createCheckout({ items: [{ menuItemId: m.quesa.id, quantity: 8 }], ...customer() }, APP);
+    const a = await createCheckout({ items: [{ menuItemId: m.quesa.id, quantity: 16 }], ...customer() }, APP);
     expect(fmt(a.pickupAt)).toBe("11:00");
     const q1 = await quoteOrder([{ menuItemId: m.quesa.id, quantity: 1 }]);
     expect(fmt(q1.pickupOptions[0])).toBe("11:15"); // held capacity counts
@@ -171,7 +172,7 @@ describe("capacity", () => {
     const q2 = await quoteOrder([{ menuItemId: m.quesa.id, quantity: 1 }]);
     expect(fmt(q2.pickupOptions[0])).toBe("11:00");
 
-    const b = await createCheckout({ items: [{ menuItemId: m.quesa.id, quantity: 8 }], ...customer() }, APP);
+    const b = await createCheckout({ items: [{ menuItemId: m.quesa.id, quantity: 16 }], ...customer() }, APP);
     setNow("10:05"); // hold (31 min) expired
     const q3 = await quoteOrder([{ menuItemId: m.quesa.id, quantity: 1 }]);
     expect(fmt(q3.pickupOptions[0])).toBe("11:00");
