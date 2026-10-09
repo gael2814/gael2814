@@ -31,7 +31,7 @@ export default async function StatusPage({ params }: { params: Promise<{ token: 
     <>
       <SiteHeader logoUrl={imageUrl(b.logoImageId)} />
       {!final && <AutoRefresh seconds={order.status === "PENDING_PAYMENT" ? 4 : 20} />}
-      <main className="bg-talavera-light min-h-screen px-4 py-8">
+      <main className="min-h-screen bg-cream px-4 py-8">
         <div className="mx-auto max-w-xl rounded-3xl border-4 border-forest bg-cream-light p-6 shadow-stamp">
           {order.status === "PENDING_PAYMENT" ? (
             <div className="text-center" role="status">
@@ -51,7 +51,7 @@ export default async function StatusPage({ params }: { params: Promise<{ token: 
             </div>
           ) : (
             <>
-              <p className="text-center font-western text-lg text-terracotta">¡Gracias, {order.firstName}!</p>
+              <p className="text-center font-serif text-xl font-bold italic text-terracotta">¡Gracias, {order.firstName}!</p>
               <h1 className="text-center font-display text-4xl text-forest">Order #{order.number}</h1>
               <div className="mt-4 rounded-2xl bg-forest p-4 text-center text-cream">
                 <div className="text-xs uppercase tracking-widest text-mustard">{order.status === "READY" ? "Ready now!" : "Estimated pickup"}</div>

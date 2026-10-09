@@ -7,6 +7,7 @@ export type PublicMenuItem = {
   slug: string;
   name: string;
   description: string;
+  pronunciation: string | null;
   priceCents: number;
   imageUrl: string | null;
   featured: boolean;
@@ -58,6 +59,7 @@ export async function getPublicMenu(): Promise<PublicCategory[]> {
           slug: i.slug,
           name: i.name,
           description: i.description,
+          pronunciation: i.pronunciation,
           priceCents: i.priceCents,
           imageUrl: imageUrl(i.imageId),
           featured: i.featured,

@@ -20,7 +20,9 @@ function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
-const C = { green: "#1f3d2b", terracotta: "#c4562a", mustard: "#e3a52b", cream: "#f7ecd4", ink: "#2a1f17" };
+const C = { green: "#1f3d2b", terracotta: "#c4562a", mustard: "#e3a52b", cream: "#f3ebdc", ink: "#2a1f17" };
+
+const logoUrl = () => `${(process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "")}/brand/logo.png`;
 
 function addressLines(b: BusinessSettings): string[] {
   return [b.addressLine1, [b.city, b.state].filter(Boolean).join(", ") + (b.zip ? ` ${b.zip}` : "")].filter(Boolean);
@@ -33,11 +35,11 @@ function layout(b: BusinessSettings, title: string, inner: string): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.cream};padding:24px 12px">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fffaf0;border:3px solid ${C.green};border-radius:14px;overflow:hidden">
-<tr><td style="background:${C.green};padding:0">
-  <div style="height:10px;background:repeating-linear-gradient(90deg,${C.terracotta} 0 20px,${C.mustard} 20px 40px,${C.cream} 40px 60px)"></div>
-  <div style="padding:22px 24px;text-align:center">
-    <div style="font-family:'Arial Black',Impact,sans-serif;font-size:30px;letter-spacing:2px;color:${C.mustard}">AY AY TACOS</div>
-    <div style="font-size:14px;color:${C.cream};font-style:italic;margin-top:4px">${esc(b.tagline)}</div>
+<tr><td style="background:${C.cream};padding:0">
+  <div style="height:8px;background:${C.green};border-bottom:4px solid ${C.terracotta}"></div>
+  <div style="padding:20px 24px 16px;text-align:center">
+    <img src="${logoUrl()}" width="120" alt="Ay Ay Tacos" style="display:block;margin:0 auto 8px;width:120px;height:auto;border:0">
+    <div style="font-family:Georgia,serif;font-size:15px;color:${C.terracotta};font-style:italic;font-weight:bold">${esc(b.tagline)}</div>
   </div>
 </td></tr>
 <tr><td style="padding:26px 26px 10px">${inner}</td></tr>
@@ -45,7 +47,7 @@ function layout(b: BusinessSettings, title: string, inner: string): string {
   <strong style="color:${C.green}">Pickup location</strong><br>${addressLines(b).map(esc).join("<br>")}
   ${contact ? `<br>${contact}` : ""}
 </td></tr>
-<tr><td style="background:${C.terracotta};color:${C.cream};text-align:center;padding:12px;font-size:13px">Thank you for supporting your local taco shop! &mdash; Ay Ay Tacos</td></tr>
+<tr><td style="background:${C.terracotta};color:${C.cream};text-align:center;padding:12px;font-size:13px">Gracias for supporting our small business! &mdash; Ay Ay Tacos</td></tr>
 </table></td></tr></table></body></html>`;
 }
 

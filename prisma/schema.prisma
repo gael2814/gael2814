@@ -61,6 +61,8 @@ model MenuItem {
   slug        String   @unique
   name        String
   description String   @default("")
+  /// Pronunciation guide shown next to the name, e.g. "hah-MY-kah"
+  pronunciation String?
   priceCents  Int
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])

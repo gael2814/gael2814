@@ -6,7 +6,7 @@ import { Btn, Card, inputCls, Notice, PageTitle } from "./ui";
 
 type Ingredient = { id: string; name: string; unit: string; yieldPercent: number | null; rawLabel: string | null; notes: string | null };
 type Item = {
-  id: string; name: string; description: string; priceCents: number; categoryId: string; imageId: string | null; featured: boolean;
+  id: string; name: string; description: string; pronunciation: string | null; priceCents: number; categoryId: string; imageId: string | null; featured: boolean;
   priceUnderReview: boolean; active: boolean; preorderable: boolean; soldOut: boolean; dailyLimit: number | null; prepUnits: number;
   tacosPerItem: number; productionNote: string | null; sortOrder: number;
   recipe: { ingredientId: string; quantity: number; ingredient: Ingredient }[];
@@ -108,7 +108,7 @@ function ItemEditor({
   setMsg: (m: { kind: "ok" | "error"; text: string }) => void;
 }) {
   const [f, setF] = useState({
-    name: item.name, description: item.description, price: (item.priceCents / 100).toFixed(2), categoryId: item.categoryId,
+    name: item.name, description: item.description, pronunciation: item.pronunciation ?? "", price: (item.priceCents / 100).toFixed(2), categoryId: item.categoryId,
     featured: item.featured, priceUnderReview: item.priceUnderReview, active: item.active,
     dailyLimit: item.dailyLimit?.toString() ?? "", prepUnits: String(item.prepUnits), tacosPerItem: String(item.tacosPerItem),
     sortOrder: String(item.sortOrder),
@@ -128,7 +128,7 @@ function ItemEditor({
     };
     if (canEdit)
       Object.assign(body, {
-        name: f.name, description: f.description, priceCents: price, categoryId: f.categoryId, featured: f.featured,
+        name: f.name, description: f.description, pronunciation: f.pronunciation.trim() || null, priceCents: price, categoryId: f.categoryId, featured: f.featured,
         priceUnderReview: f.priceUnderReview, active: f.active, sortOrder: Math.floor(Number(f.sortOrder) || 0),
       });
     await patch(item.id, body, `${f.name} saved.`);
@@ -179,6 +179,7 @@ function ItemEditor({
         {canEdit && (
           <>
             <label className={lbl}>Name<input className={inputCls} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
+            <label className={lbl}>Pronunciation (optional)<input className={inputCls} placeholder="e.g. hah-MY-kah" value={f.pronunciation} onChange={(e) => setF({ ...f, pronunciation: e.target.value })} /></label>
             <label className={lbl}>Description<textarea rows={3} className={inputCls} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></label>
             <div className="grid grid-cols-2 gap-2">
               <label className={lbl}>Price ($)<input inputMode="decimal" className={inputCls} value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></label>

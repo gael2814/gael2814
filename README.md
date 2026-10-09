@@ -141,8 +141,9 @@ Sign in as the owner → **Menu**.
 
 ## Before accepting real orders — checklist
 
-- [ ] Upload the official **moose logo** (Business → Logo) and **food photos** (Menu → Edit → Photo)
-- [ ] Add the **descriptions** from the printed menu for Favorites, Starters, Drinks and Desserts
+- [x] Official moose logo, menu descriptions and 8 food photos are loaded from the printed menu
+- [ ] Optional: upload a **higher-resolution logo** (Business → Logo); the one cropped from the menu is ~250 px wide
+- [ ] Optional: add photos for dishes that don't have one yet (Menu → Edit → Photo)
 - [ ] Confirm the **Large Taco** ($9) and **Family Pack** ($80) prices. They are marked "price under review"
 - [ ] Choose **operating days** (Schedule). Online preorders stay closed until you do
 - [ ] Enter the **phone, email, ZIP, social links and hours** (Business)

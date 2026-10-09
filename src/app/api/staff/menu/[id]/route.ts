@@ -7,6 +7,7 @@ import { can, type Permission } from "@/lib/permissions";
 const FIELD_PERMS: Record<string, Permission> = {
   name: "menu.edit",
   description: "menu.edit",
+  pronunciation: "menu.edit",
   priceCents: "menu.edit",
   categoryId: "menu.edit",
   imageId: "menu.edit",
@@ -26,6 +27,7 @@ const patchSchema = z
   .object({
     name: z.string().trim().min(1).max(80),
     description: z.string().max(500),
+    pronunciation: z.string().trim().max(80).nullable(),
     priceCents: z.number().int().min(0).max(100000),
     categoryId: z.string().min(1),
     imageId: z.string().nullable(),

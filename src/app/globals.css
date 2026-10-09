@@ -6,7 +6,7 @@
   --forest: #1f3d2b;
   --terracotta: #c4562a;
   --mustard: #e3a52b;
-  --cream: #f7ecd4;
+  --cream: #f3ebdc;
 }
 
 html { scroll-behavior: smooth; }
@@ -27,16 +27,23 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%231f3d2b' stroke-opacity='.07' stroke-width='1.5'%3E%3Cpath d='M32 4 L38 26 L60 32 L38 38 L32 60 L26 38 L4 32 L26 26 Z'/%3E%3Ccircle cx='32' cy='32' r='5'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-/* Serape stripe divider */
+/* Zigzag border from the printed menu (green / terracotta / mustard triangles) */
+.zigzag {
+  height: 14px;
+  background-color: var(--cream);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='54' height='14' viewBox='0 0 54 14'%3E%3Cpath d='M0 0h18L9 14z' fill='%231f3d2b'/%3E%3Cpath d='M18 0h18l-9 14z' fill='%23c4562a'/%3E%3Cpath d='M36 0h18l-9 14z' fill='%23e3a52b'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 54px 14px;
+}
+.zigzag-up { transform: scaleY(-1); }
+/* kept for the staff header */
 .serape {
-  height: 12px;
-  background: repeating-linear-gradient(90deg,
-    var(--terracotta) 0 28px, var(--mustard) 28px 40px, var(--forest) 40px 52px,
-    var(--cream) 52px 58px, var(--forest) 58px 70px, var(--mustard) 70px 82px);
+  height: 6px;
+  background: repeating-linear-gradient(90deg, var(--terracotta) 0 18px, var(--mustard) 18px 36px, var(--forest) 36px 54px);
 }
 
 /* Dotted leader between dish name and price, like a printed menu */
-.leader { flex: 1; border-bottom: 2px dotted rgba(31, 61, 43, 0.35); margin: 0 0.5rem 0.35rem; min-width: 1rem; }
+.leader { flex: 1; border-bottom: 3px dotted rgba(154, 128, 96, 0.55); margin: 0 0.5rem 0.35rem; min-width: 1rem; }
 
 .text-shadow-stamp { text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.25); }
 

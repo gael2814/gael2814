@@ -14,17 +14,12 @@ export function preorderSubtext(status: PreorderStatus, schedule: ScheduleSettin
 
 export function PreorderBadge({ status, schedule }: { status: PreorderStatus; schedule: ScheduleSettings }) {
   return (
-    <div
-      role="status"
-      className={`inline-flex flex-col items-center rounded-2xl border-2 px-4 py-2 text-center ${
-        status.open ? "border-mustard bg-forest-light text-cream" : "border-cream/60 bg-black/20 text-cream"
-      }`}
-    >
-      <span className="flex items-center gap-2 font-display text-base uppercase tracking-wide">
-        <span className={`inline-block h-3 w-3 rounded-full ${status.open ? "animate-pulse bg-green-400" : "bg-terracotta-light"}`} aria-hidden />
-        {status.open ? "Preorders are open" : status.message}
+    <div role="status" className="inline-flex items-center gap-3 rounded-2xl border-2 border-forest/20 bg-cream-light px-4 py-2 text-left">
+      <span className={`inline-block h-3 w-3 shrink-0 rounded-full ${status.open ? "animate-pulse bg-green-600" : "bg-terracotta"}`} aria-hidden />
+      <span>
+        <span className="block font-display text-[15px] uppercase tracking-wide text-forest">{status.open ? "Preorders are open" : status.message}</span>
+        <span className="block text-sm text-ink/70">{preorderSubtext(status, schedule)}</span>
       </span>
-      <span className="text-xs opacity-90">{preorderSubtext(status, schedule)}</span>
     </div>
   );
 }

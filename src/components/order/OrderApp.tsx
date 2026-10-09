@@ -91,7 +91,7 @@ export function OrderApp(props: {
     );
 
   return (
-    <main className="bg-talavera-light min-h-screen pb-28 lg:pb-10">
+    <main className="min-h-screen bg-cream pb-28 lg:pb-10">
       <div className={`${status.open ? "bg-forest-light" : "bg-terracotta"} text-center text-cream`}>
         <div className="mx-auto max-w-6xl px-4 py-3" role="status">
           <span className="font-display uppercase tracking-wide">{status.open ? "Preorders are open" : status.message}</span>
@@ -99,7 +99,7 @@ export function OrderApp(props: {
         </div>
       </div>
 
-      <nav className="sticky top-[68px] z-30 border-b-2 border-forest/20 bg-cream/95 backdrop-blur" aria-label="Menu categories">
+      <nav className="sticky top-[80px] z-30 border-b-2 border-forest/15 bg-cream/95 backdrop-blur" aria-label="Menu categories">
         <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-2">
           {menu.map((c) => (
             <a key={c.id} href={`#c-${c.slug}`} className="shrink-0 rounded-full border-2 border-forest px-3 py-1 text-sm font-semibold text-forest hover:bg-forest hover:text-cream">
@@ -117,10 +117,10 @@ export function OrderApp(props: {
             </p>
           )}
           {menu.map((c) => (
-            <section key={c.id} id={`c-${c.slug}`} className="scroll-mt-32" aria-labelledby={`h-${c.slug}`}>
-              <h2 id={`h-${c.slug}`} className="font-display text-2xl uppercase tracking-wide text-terracotta sm:text-3xl">
+            <section key={c.id} id={`c-${c.slug}`} className="scroll-mt-36" aria-labelledby={`h-${c.slug}`}>
+              <h2 id={`h-${c.slug}`} className="font-display text-3xl text-terracotta sm:text-4xl">
                 {c.name}
-                {c.subtitle && <span className="ml-2 font-body text-sm normal-case tracking-normal text-forest/80">{c.subtitle}</span>}
+                {c.subtitle && <span className="block font-serif text-base font-semibold italic text-ink/60">{c.subtitle}</span>}
               </h2>
               <div className="mt-3 grid gap-4 sm:grid-cols-2">
                 {c.items.map((item) => (
@@ -136,7 +136,7 @@ export function OrderApp(props: {
 
         {/* Desktop cart */}
         <aside className="hidden lg:block" aria-label="Your order">
-          <div className="sticky top-36">
+          <div className="sticky top-40">
             <CartPanel lines={lines} subtotal={subtotal} setQty={setQty} canOrder={status.open} onCheckout={() => setStep("checkout")} />
           </div>
         </aside>
@@ -184,17 +184,17 @@ function ItemCard({ item, qty, canOrder, setQty }: { item: PublicMenuItem; qty: 
   const disabled = !canOrder || item.soldOut || !item.preorderable;
   const max = item.remaining ?? 50;
   return (
-    <article className={`flex overflow-hidden rounded-2xl border-[3px] border-forest bg-cream-light shadow-stamp-sm ${item.soldOut ? "opacity-70" : ""}`}>
-      <div className="h-auto w-28 shrink-0 sm:w-32">
-        <FoodPhoto src={item.imageUrl} name={item.name} className="min-h-[7rem]" showName={false} />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col p-3">
+    <article className={`flex gap-3 rounded-2xl border-2 border-tan/60 bg-cream-light p-3 ${item.soldOut ? "opacity-70" : ""}`}>
+      <FoodPhoto src={item.imageUrl} name={item.name} size={88} />
+      <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-display text-lg leading-tight text-forest">{item.name}</h3>
-          <span className="font-display text-lg text-terracotta">{formatCents(item.priceCents)}</span>
+          <h3 className="font-serif text-lg font-bold leading-tight text-ink">
+            {item.name}
+            {item.pronunciation && <span className="block font-serif text-xs font-semibold italic text-ink/55">{item.pronunciation}</span>}
+          </h3>
+          <span className="font-display text-lg text-brick">{formatCents(item.priceCents)}</span>
         </div>
-        {item.description && <p className="mt-1 text-sm text-ink/80">{item.description}</p>}
-        {item.tacosPerItem > 0 && <p className="mt-1 text-xs font-semibold text-forest/70">{item.tacosPerItem} tacos</p>}
+        {item.description && <p className="mt-1 text-[15px] leading-snug text-ink/80">{item.description}</p>}
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
           <span className="text-xs font-bold uppercase text-terracotta">
             {item.soldOut ? "Sold out today" : !item.preorderable ? "In-store only" : item.remaining != null && item.remaining <= 10 ? `Only ${item.remaining} left` : ""}
@@ -203,7 +203,7 @@ function ItemCard({ item, qty, canOrder, setQty }: { item: PublicMenuItem; qty: 
             <button
               disabled={disabled}
               onClick={() => setQty(item.id, 1)}
-              className="rounded-full bg-terracotta px-4 py-1.5 font-display text-sm uppercase text-cream hover:bg-terracotta-dark disabled:cursor-not-allowed disabled:bg-ink/30"
+              className="rounded-full bg-terracotta px-5 py-1.5 font-display text-sm uppercase text-cream hover:bg-terracotta-dark disabled:cursor-not-allowed disabled:bg-ink/30"
               aria-label={`Add ${item.name}`}
             >
               Add
@@ -384,7 +384,7 @@ function Checkout({
   const input = "mt-1 w-full rounded-xl border-2 border-forest/40 bg-white px-3 py-2.5 text-base focus:border-forest";
 
   return (
-    <main className="bg-talavera-light min-h-screen pb-16">
+    <main className="min-h-screen bg-cream pb-16">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <button onClick={onBack} className="font-semibold text-forest underline">← Back to menu</button>
         <h1 className="mt-3 font-display text-3xl uppercase text-forest sm:text-4xl">Checkout</h1>

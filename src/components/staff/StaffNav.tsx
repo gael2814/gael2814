@@ -24,7 +24,10 @@ export function StaffNav({ user }: { user: StaffUser }) {
   return (
     <header className="no-print sticky top-0 z-30 bg-forest text-cream shadow">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 py-2 sm:px-6">
-        <Link href="/" className="font-western text-lg text-mustard" title="View website">Ay Ay</Link>
+        <Link href="/" title="View website" className="shrink-0 rounded-full bg-cream p-0.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo.png" alt="Ay Ay Tacos" className="h-9 w-9 object-contain" />
+        </Link>
         <nav className="flex flex-1 gap-1 overflow-x-auto" aria-label="Staff">
           {LINKS.filter((l) => can(user.role, l.perm)).map((l) => (
             <Link

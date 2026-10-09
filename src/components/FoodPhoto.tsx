@@ -1,14 +1,34 @@
 /* eslint-disable @next/next/no-img-element */
-/** Menu photo uploaded by the owner, or a decorative tile until a photo is added. */
-export function FoodPhoto({ src, name, className = "", showName = true }: { src: string | null; name: string; className?: string; showName?: boolean }) {
-  if (src) return <img src={src} alt={name} loading="lazy" className={`h-full w-full object-cover ${className}`} />;
+/**
+ * Menu photo in the round, framed style of the printed menu.
+ * Without a photo, a quiet patterned tile is shown instead.
+ */
+export function FoodPhoto({
+  src,
+  name,
+  size,
+  className = "",
+  ring = "border-tan",
+}: {
+  src: string | null;
+  name: string;
+  size?: number;
+  className?: string;
+  ring?: string;
+}) {
+  const style = size ? { width: size, height: size } : undefined;
+  const frame = `shrink-0 overflow-hidden rounded-full border-[3px] ${ring} bg-cream-light p-[3px] ${className}`;
+  if (src)
+    return (
+      <div className={frame} style={style}>
+        <img src={src} alt={name} loading="lazy" className="h-full w-full rounded-full object-cover" />
+      </div>
+    );
   return (
-    <div className={`bg-talavera flex h-full w-full items-center justify-center p-3 ${className}`} role="img" aria-label={name}>
-      {showName ? (
-        <span className="rounded-lg bg-forest/80 px-3 py-1 text-center font-western text-lg leading-tight text-mustard">{name}</span>
-      ) : (
-        <span className="text-3xl text-mustard/70" aria-hidden>✦</span>
-      )}
+    <div className={frame} style={style} role="img" aria-label={name}>
+      <div className="bg-talavera-light flex h-full w-full items-center justify-center rounded-full">
+        <span className="text-2xl text-terracotta/50" aria-hidden>✦</span>
+      </div>
     </div>
   );
 }
