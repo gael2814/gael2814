@@ -113,6 +113,15 @@ function ItemEditor({
     dailyLimit: item.dailyLimit?.toString() ?? "", prepUnits: String(item.prepUnits), tacosPerItem: String(item.tacosPerItem),
     sortOrder: String(item.sortOrder),
   });
+  // Kitchen speed: 1 workload unit = 1 quesabirria order = 15/8 minutes of kitchen time.
+  const MIN_PER_UNIT = 15 / 8;
+  const [speed, setSpeed] = useState({ orders: "8", minutes: String(Math.round(item.prepUnits * MIN_PER_UNIT * 8 * 10) / 10) });
+  function setSpeedAndUnits(next: { orders: string; minutes: string }) {
+    setSpeed(next);
+    const orders = Number(next.orders);
+    const minutes = Number(next.minutes);
+    if (orders > 0 && minutes >= 0) setF((cur) => ({ ...cur, prepUnits: String(Math.round((minutes / orders / MIN_PER_UNIT) * 1000) / 1000) }));
+  }
   const [recipe, setRecipe] = useState(item.recipe.map((r) => ({ ingredientId: r.ingredientId, quantity: String(r.quantity) })));
   const [uploading, setUploading] = useState(false);
 
@@ -205,14 +214,35 @@ function ItemEditor({
             </div>
           </>
         )}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <label className={lbl}>Daily limit<input inputMode="numeric" placeholder="No limit" className={inputCls} value={f.dailyLimit} onChange={(e) => setF({ ...f, dailyLimit: e.target.value })} /></label>
-          <label className={lbl} title="Kitchen workload per item. 1 = one quesabirria order.">Prep workload<input inputMode="decimal" className={inputCls} value={f.prepUnits} onChange={(e) => setF({ ...f, prepUnits: e.target.value })} /></label>
           <label className={lbl}>Tacos per item<input inputMode="numeric" className={inputCls} value={f.tacosPerItem} onChange={(e) => setF({ ...f, tacosPerItem: e.target.value })} /></label>
         </div>
-        <p className="text-xs text-ink/60">
-          Prep workload is how much kitchen time one item takes compared to one quesabirria order (1.0). Example: 0.5 = half the time. Used to calculate realistic pickup times.
-        </p>
+        <fieldset className="rounded-xl border-2 border-forest/20 bg-white p-3">
+          <legend className={`${lbl} px-1`}>Kitchen speed</legend>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <input
+              aria-label="Number of orders"
+              inputMode="numeric"
+              className={`${inputCls} !w-16`}
+              value={speed.orders}
+              onChange={(e) => setSpeedAndUnits({ ...speed, orders: e.target.value })}
+            />
+            <span>orders take</span>
+            <input
+              aria-label="Minutes"
+              inputMode="decimal"
+              className={`${inputCls} !w-20`}
+              value={speed.minutes}
+              onChange={(e) => setSpeedAndUnits({ ...speed, minutes: e.target.value })}
+            />
+            <span>minutes</span>
+          </div>
+          <p className="mt-2 text-xs text-ink/60">
+            Compared with quesabirrias (8 orders in 15 minutes). Everything shares one kitchen line, so a fast dish still waits
+            behind the orders ahead of it. Pickup times are calculated from this.
+          </p>
+        </fieldset>
         <div className="flex flex-wrap gap-2">
           <Btn onClick={save}>Save changes</Btn>
           {canEdit && <Btn variant="danger" onClick={remove}>Remove item</Btn>}

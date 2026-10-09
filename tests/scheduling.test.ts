@@ -84,4 +84,40 @@ describe("pickup scheduling", () => {
       ),
     ).toEqual(["2027-03-15T11:00:00.000-04:00", "2027-03-15T11:15:00.000-04:00", "2027-03-15T11:30:00.000-04:00"]);
   });
+
+  describe("owner's example: carnitas are fast, but share the kitchen line", () => {
+    const QUESA = 1; // 8 orders per 15 min
+    const CARNITAS = 0.53; // 8 orders in ~8 min
+    function book(units: number[]) {
+      const existing: { pickupAt: number; units: number }[] = [];
+      for (const u of units) {
+        const at = earliestPickup(input(existing), u)!;
+        existing.push({ pickupAt: at, units: u });
+      }
+      return existing;
+    }
+
+    it("a carnitas order alone is ready at opening", () => {
+      expect(fmt(earliestPickup(input([]), CARNITAS))).toBe("11:00");
+    });
+
+    it("about 15 carnitas orders fit in the same time as 8 quesabirria orders", () => {
+      const carnitas = book(Array(15).fill(CARNITAS));
+      expect(carnitas.every((o) => fmt(o.pickupAt) === "11:00")).toBe(true);
+      expect(fmt(earliestPickup(input(carnitas), CARNITAS))).toBe("11:15");
+    });
+
+    it("after 30 quesabirria orders, a carnitas order waits its turn", () => {
+      const existing = book(Array(30).fill(QUESA));
+      // 30 orders × 15/8 min ≈ 56 min of cooking from 10:45 → done ~11:41
+      expect(fmt(Math.max(...existing.map((o) => o.pickupAt)))).toBe("11:45");
+      expect(fmt(earliestPickup(input(existing), CARNITAS))).toBe("11:45");
+    });
+
+    it("a carnitas order can't jump ahead of quesabirrias that already fill the earlier times", () => {
+      const existing = book(Array(16).fill(QUESA)); // fills 11:00 and 11:15 exactly
+      expect(fmt(earliestPickup(input(existing), CARNITAS))).toBe("11:30");
+    });
+  });
 });
+

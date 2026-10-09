@@ -86,7 +86,7 @@ const MENU: { slug: string; name: string; subtitle?: string; items: SeedItem[] }
         priceCents: 1500,
         description:
           "Three crispy corn tortillas layered with beans and golden, crispy slow-cooked pork, topped with pickled red onions, fresh onion, cilantro, queso fresco and our creamy sauce.",
-        prepUnits: 1,
+        prepUnits: 0.53, // owner: 8 orders take ~8 min (vs 15 min for 8 quesabirria orders)
         tacosPerItem: 3,
       },
       {
@@ -148,7 +148,8 @@ const MENU: { slug: string; name: string; subtitle?: string; items: SeedItem[] }
         pronunciation: "em-pah-NAH-dah",
         priceCents: 500,
         // Owner update: picadillo filling (printed menu said "a savory filling").
-        description: "One golden, crispy turnover filled with picadillo (pee-kah-DEE-yoh): seasoned ground beef with potatoes.",
+        description:
+          "One golden, crispy turnover filled with picadillo (pee-kah-DEE-yoh): seasoned ground beef with potatoes. Comes with one salsa that changes daily, depending on the peppers our chef has that day.",
         prepUnits: 0.25,
       },
     ],

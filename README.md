@@ -35,7 +35,7 @@ Built with Next.js, TypeScript, Tailwind CSS, PostgreSQL + Prisma, Stripe Checko
 ### Smart pickup times
 * Kitchen work is measured in **workload units**: **1 unit = 1 quesabirria order (3 tacos)**.
 * Capacity starts at **8 units per 15-minute interval**, from your benchmark of 8 quesabirria orders every 15 minutes.
-* Each menu item has its own workload. For example, the Family Pack = 3.34 (10 tacos) and a drink = 0.1.
+* Each menu item has its own kitchen speed, entered in Menu → Edit as "8 orders take 8 minutes". Carnitas are about twice as fast as quesabirrias. All dishes share **one kitchen line**, so a fast dish still waits behind orders already booked. For example, after 30 quesabirria orders, a carnitas order gets 11:45, not 11:00.
 * The kitchen can start cooking before opening (default **10:45 AM**, adjustable). Customers still never pick up before 11:00.
 * Orders are cooked in pickup-time order. A new order gets the **earliest time at which it, and every order already booked, can realistically be ready**. When 11:00 is full, the customer is offered 11:15 or the next open time. Customers may also choose a later time.
 * Customers see the estimated pickup time **before they pay**.
@@ -146,9 +146,9 @@ Sign in as the owner → **Menu**.
 - [ ] Optional: add photos for dishes that don't have one yet (Menu → Edit → Photo)
 - [ ] Confirm the **Large Taco** ($9) and **Family Pack** ($80) prices. They are marked "price under review"
 - [ ] Choose **operating days** (Schedule). Online preorders stay closed until you do
-- [ ] Enter the **phone, email, ZIP, social links and hours** (Business)
+- [ ] Enter the **phone, ZIP and hours** (Business). The email (ayaytacosmaine@gmail.com) and Facebook link are already set
 - [ ] Confirm the **sales tax** rate (currently 8%, Maine's prepared-food rate) with your accountant
-- [ ] Review the **prep workload** of every item and the **kitchen start time** (Menu, Schedule)
+- [ ] Review the **kitchen speed** of every item (Menu → Edit) and the **kitchen start time** (Schedule). Quesabirrias and carnitas use your numbers; the rest are estimates
 - [ ] Enter **recipes** for carne asada and anything else you want in the ingredient report
 - [ ] Connect **Stripe** (test first, then live) and **Resend** with a verified domain
 - [ ] Create **staff accounts** for managers and the kitchen, and change the owner password

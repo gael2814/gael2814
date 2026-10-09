@@ -91,9 +91,9 @@ export const DEFAULT_SETTINGS: AllSettings = {
     city: "Caribou",
     state: "Maine",
     zip: "",
-    // Contact details and hours are intentionally blank until the owner enters them.
+    // Phone and hours stay blank until the owner enters them.
     phone: "",
-    email: "",
+    email: "ayaytacosmaine@gmail.com",
     facebookUrl: "https://www.facebook.com/AyAyTacos", // from the food trailer banner: "@AyAyTacos"
     instagramUrl: "",
     hours: [],
