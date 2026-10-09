@@ -307,7 +307,7 @@ function Checkout({
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [pickup, setPickup] = useState<number | null>(null);
-  const [form, setForm] = useState({ customerName: "", customerPhone: "", customerEmail: "", notes: "" });
+  const [form, setForm] = useState({ customerName: "", customerPhone: "", customerEmail: "", notes: "", smsOptIn: false });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const idem = useRef<string>("");
@@ -401,8 +401,14 @@ function Checkout({
                 Phone
                 <input required type="tel" autoComplete="tel" inputMode="tel" className={input} value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} />
               </label>
+              <label className="flex items-start gap-2 text-sm">
+                <input type="checkbox" className="mt-1 h-5 w-5 shrink-0" checked={form.smsOptIn} onChange={(e) => setForm({ ...form, smsOptIn: e.target.checked })} />
+                <span>
+                  <strong>Text me when my order is ready.</strong> <span className="text-ink/60">One message per order. Msg &amp; data rates may apply. Reply STOP to opt out.</span>
+                </span>
+              </label>
               <label className="block text-sm font-semibold">
-                Email <span className="font-normal text-ink/60">(for your confirmation)</span>
+                Email <span className="font-normal text-ink/60">(for your confirmation and "order ready" notice)</span>
                 <input required type="email" autoComplete="email" className={input} value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} />
               </label>
               <label className="block text-sm font-semibold">

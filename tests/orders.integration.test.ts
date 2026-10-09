@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { saveSetting } from "@/lib/settings";
 import {
   cancelOrder,
+  setKitchenStatus,
   changePickupTime,
   createCheckout,
   markOrderPaid,
@@ -354,5 +355,76 @@ describe("production reports", () => {
     const again = await ensureCutoffSnapshot("2026-10-12");
     expect(again!.production.totals.items).toBe(2);
     expect((await getProductionReport("2026-10-12")).totals.items).toBe(0);
+  });
+});
+
+describe("ready notifications and kitchen timeline", () => {
+  async function withFetchSpy(fn: (sent: { url: string; body: string }[]) => Promise<void>) {
+    process.env.RESEND_API_KEY = "re_test";
+    process.env.TWILIO_ACCOUNT_SID = "AC_test";
+    process.env.TWILIO_AUTH_TOKEN = "tok";
+    process.env.TWILIO_FROM = "+12075550199";
+    const sent: { url: string; body: string }[] = [];
+    const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
+      sent.push({ url: String(url), body: String((init as RequestInit).body) });
+      return new Response("{}", { status: 200 });
+    });
+    try {
+      await fn(sent);
+    } finally {
+      spy.mockRestore();
+      for (const k of ["RESEND_API_KEY", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM"]) delete process.env[k];
+    }
+  }
+
+  it("tapping Ready records the time and emails + texts the customer exactly once", async () => {
+    await withFetchSpy(async (sent) => {
+      const c = await paidOrder([{ menuItemId: m.quesa.id, quantity: 1 }], { smsOptIn: true, customerPhone: "(207) 555-0123" });
+      sent.length = 0; // ignore the confirmation email
+      setNow("10:50");
+      await setKitchenStatus(c.orderId, "PREPARING", "Kitchen");
+      setNow("10:58");
+      const r = await setKitchenStatus(c.orderId, "READY", "Kitchen");
+      expect(r.notified).toEqual({ email: "sent", sms: "sent" });
+      const email = sent.find((s) => s.url.includes("resend"))!;
+      expect(JSON.parse(email.body).subject).toBe("Your Ay Ay Tacos order #1001 is ready! 🌮");
+      const sms = new URLSearchParams(sent.find((s) => s.url.includes("twilio"))!.body);
+      expect(sms.get("To")).toBe("+12075550123");
+      expect(sms.get("Body")).toContain("order #1001 is ready for pickup");
+
+      // undo then Ready again: time updates, but no second message
+      await setKitchenStatus(c.orderId, "PREPARING", "Kitchen");
+      expect((await prisma.order.findUniqueOrThrow({ where: { id: c.orderId } })).readyAt).toBeNull();
+      setNow("11:01");
+      const again = await setKitchenStatus(c.orderId, "READY", "Kitchen");
+      expect(again.notified).toBeNull();
+      expect(sent).toHaveLength(2);
+
+      setNow("11:06");
+      await setKitchenStatus(c.orderId, "PICKED_UP", "Kitchen");
+      const o = await prisma.order.findUniqueOrThrow({ where: { id: c.orderId } });
+      expect(fmt(o.preparingAt!)).toBe("10:50");
+      expect(fmt(o.readyAt!)).toBe("11:01");
+      expect(fmt(o.pickedUpAt!)).toBe("11:06");
+    });
+  });
+
+  it("does not text customers who didn't opt in", async () => {
+    await withFetchSpy(async (sent) => {
+      const c = await paidOrder([{ menuItemId: m.quesa.id, quantity: 1 }]);
+      sent.length = 0;
+      const r = await setKitchenStatus(c.orderId, "READY", "Kitchen");
+      expect(r.notified).toEqual({ email: "sent", sms: null });
+      expect(sent.filter((s) => s.url.includes("twilio"))).toHaveLength(0);
+    });
+  });
+
+  it("two staff tapping Ready at the same moment still sends one message", async () => {
+    await withFetchSpy(async (sent) => {
+      const c = await paidOrder([{ menuItemId: m.quesa.id, quantity: 1 }]);
+      sent.length = 0;
+      await Promise.allSettled([setKitchenStatus(c.orderId, "READY", "A"), setKitchenStatus(c.orderId, "READY", "B")]);
+      expect(sent.filter((s) => s.url.includes("resend"))).toHaveLength(1);
+    });
   });
 });

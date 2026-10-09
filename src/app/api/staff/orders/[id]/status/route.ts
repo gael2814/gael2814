@@ -8,6 +8,6 @@ export const POST = route(async (req: Request, ctx: { params: Promise<{ id: stri
   const user = await requirePermission("kitchen.status");
   const { id } = await ctx.params;
   const { status } = z.object({ status: z.enum(["CONFIRMED", "PREPARING", "READY", "PICKED_UP"]) }).parse(await req.json());
-  await setKitchenStatus(id, status, user.name);
-  return json({ ok: true });
+  const result = await setKitchenStatus(id, status, user.name);
+  return json({ ok: true, ...result });
 });

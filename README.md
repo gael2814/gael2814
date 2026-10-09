@@ -117,6 +117,18 @@ For local webhook testing: `stripe listen --forward-to localhost:3000/api/paymen
 2. Create an API key and put it in `RESEND_API_KEY`.
 3. Set `EMAIL_FROM`, e.g. `Ay Ay Tacos <orders@yourdomain.com>`. It must use the verified domain. Optionally set `EMAIL_REPLY_TO` to the restaurant inbox.
 
+## "Order ready" messages and pickup time accuracy
+
+* On the kitchen screen, tap **Ready for Pickup** when an order is bagged. The customer gets a "Your order is ready!" email right away, and a text if they ticked **Text me when my order is ready** at checkout. Each order gets one message, even if someone taps twice.
+* Every tap is saved: when cooking started, when the order was ready, and when it was picked up.
+* **Staff → Timing** compares those times with the pickup time customers were promised. It shows the on-time %, minutes early or late, which pickup times run late, and how long food waits before pickup. After 3 or more busy mornings, it also measures the kitchen's real speed and suggests a capacity setting you can apply with one click. It never changes anything on its own.
+
+### Connect text messages (optional, Twilio)
+1. Create an account at <https://www.twilio.com> and buy a local phone number.
+2. US texting requires registering your business for **A2P 10DLC** in the Twilio Console (Messaging → Regulatory compliance). Approval can take a few days.
+3. Add `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_FROM` (your Twilio number), or `TWILIO_MESSAGING_SERVICE_SID`.
+Without Twilio, everything else still works: customers get the email, and texts are only logged.
+
 ## Add and change menu items
 
 Sign in as the owner → **Menu**.
@@ -151,5 +163,6 @@ Sign in as the owner → **Menu**.
 - [ ] Review the **kitchen speed** of every item (Menu → Edit) and the **kitchen start time** (Schedule). Quesabirrias and carnitas use your numbers; the rest are estimates
 - [ ] Enter **recipes** for carne asada and anything else you want in the ingredient report
 - [ ] Connect **Stripe** (test first, then live) and **Resend** with a verified domain
+- [ ] Optional: connect **Twilio** for "order ready" texts
 - [ ] Create **staff accounts** for managers and the kitchen, and change the owner password
 - [ ] Place a full test order on a phone, from start to finish, before announcing it

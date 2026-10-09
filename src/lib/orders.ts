@@ -9,7 +9,8 @@ import { getSettings, type AllSettings } from "./settings";
 import { formatTime, getNow, serviceDateOf } from "./time";
 import { getPaymentProvider, getProviderByName } from "./payments";
 import { sendEmail } from "./email/send";
-import { cancelledEmail, confirmationEmail, pickupChangedEmail, refundEmail, type EmailOrder } from "./email/templates";
+import { cancelledEmail, confirmationEmail, pickupChangedEmail, readyEmail, readySms, refundEmail, type EmailOrder } from "./email/templates";
+import { sendSms } from "./sms";
 
 type Tx = Prisma.TransactionClient;
 
@@ -44,8 +45,10 @@ export const checkoutSchema = cartSchema.extend({
   notes: z.string().trim().max(500).optional().default(""),
   requestedPickupAt: z.number().int().optional(),
   idempotencyKey: z.string().min(8).max(100),
+  /** Customer asked for a text message when the order is ready. */
+  smsOptIn: z.boolean().optional().default(false),
 });
-export type CheckoutInput = z.infer<typeof checkoutSchema>;
+export type CheckoutInput = z.input<typeof checkoutSchema>;
 
 /** Active (paid, or held during payment) orders for a service day. */
 function activeOrderWhere(serviceDate: string, now: Date): Prisma.OrderWhereInput {
@@ -194,6 +197,7 @@ export async function createCheckout(input: CheckoutInput, appUrl: string) {
           customerPhone: input.customerPhone,
           customerEmail: input.customerEmail,
           notes: input.notes || null,
+          smsOptIn: input.smsOptIn ?? false,
           subtotalCents: priced.subtotalCents,
           taxCents: priced.taxCents,
           totalCents: priced.totalCents,
@@ -343,7 +347,7 @@ async function emailOrder(orderId: string) {
 
 export async function sendOrderEmail(
   orderId: string,
-  kind: "confirmation" | "pickup_changed" | "cancelled" | "refund",
+  kind: "confirmation" | "pickup_changed" | "cancelled" | "refund" | "ready",
   extra: { previousPickup?: Date; refundCents?: number } = {},
 ) {
   const { order, settings, eo } = await emailOrder(orderId);
@@ -355,20 +359,60 @@ export async function sendOrderEmail(
         ? pickupChangedEmail(eo, b, extra.previousPickup ?? order.pickupAt)
         : kind === "cancelled"
           ? cancelledEmail(eo, b, extra.refundCents ?? 0)
-          : refundEmail(eo, b, extra.refundCents ?? 0);
+          : kind === "ready"
+            ? readyEmail(eo, b)
+            : refundEmail(eo, b, extra.refundCents ?? 0);
   return sendEmail({ to: order.customerEmail, ...msg, kind, orderId });
 }
 
 const KITCHEN_FLOW: OrderStatus[] = ["CONFIRMED", "PREPARING", "READY", "PICKED_UP"];
 
+/**
+ * One-tap kitchen status change. Records the kitchen timeline (preparing,
+ * ready, picked up) for estimate accuracy, and the first time an order is
+ * marked Ready the customer gets an email (and a text if they opted in).
+ */
 export async function setKitchenStatus(orderId: string, status: OrderStatus, actor: string) {
   if (!KITCHEN_FLOW.includes(status)) throw new OrderError("bad_status", "Use cancel to cancel an order.");
-  const res = await prisma.order.updateMany({
-    where: { id: orderId, status: { in: KITCHEN_FLOW }, paymentStatus: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
-    data: { status },
-  });
-  if (!res.count) throw new OrderError("not_allowed", "Only paid, active orders can change kitchen status.", 409);
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order || !KITCHEN_FLOW.includes(order.status) || !["PAID", "PARTIALLY_REFUNDED"].includes(order.paymentStatus))
+    throw new OrderError("not_allowed", "Only paid, active orders can change kitchen status.", 409);
+  if (order.status === status) return { notified: null };
+
+  const now = getNow();
+  // Moving forward stamps the time; moving back (an undo after a mis-tap) clears the later stamps.
+  const timeline =
+    status === "CONFIRMED"
+      ? { preparingAt: null, readyAt: null, pickedUpAt: null }
+      : status === "PREPARING"
+        ? { preparingAt: order.preparingAt ?? now, readyAt: null, pickedUpAt: null }
+        : status === "READY"
+          ? // undoing "Picked up" keeps the original ready time
+            { readyAt: order.status === "PICKED_UP" && order.readyAt ? order.readyAt : now, pickedUpAt: null }
+          : { readyAt: order.readyAt ?? now, pickedUpAt: now };
+
+  const res = await prisma.order.updateMany({ where: { id: orderId, status: order.status }, data: { status, ...timeline } });
+  if (!res.count) throw new OrderError("conflict", "This order was just updated by someone else. Please try again.", 409);
   await prisma.orderEvent.create({ data: { orderId, type: "status", message: `Status → ${status}`, actor } });
+
+  let notified: { email: string; sms: string | null } | null = null;
+  if (status === "READY") {
+    // Claim the notification atomically so double taps never send twice.
+    const claim = await prisma.order.updateMany({ where: { id: orderId, readyNotifiedAt: null }, data: { readyNotifiedAt: now } });
+    if (claim.count) {
+      const email = await sendOrderEmail(orderId, "ready");
+      let sms: string | null = null;
+      if (order.smsOptIn) {
+        const settings = await getSettings();
+        sms = await sendSms({ to: order.customerPhone, body: readySms(order, settings.business), kind: "ready_sms", orderId });
+      }
+      notified = { email, sms };
+      await prisma.orderEvent.create({
+        data: { orderId, type: "notified", message: `Ready notice: email ${email}${sms ? `, text ${sms}` : ""}`, actor },
+      });
+    }
+  }
+  return { notified };
 }
 
 export async function changePickupTime(orderId: string, pickupAt: Date, actor: string, notify = true) {

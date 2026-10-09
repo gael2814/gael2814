@@ -163,3 +163,33 @@ export function refundEmail(o: EmailOrder, b: BusinessSettings, refundCents: num
   const inner = `<p style="font-size:17px;margin:0 0 8px">Hi ${esc(o.customerName)},</p><p>${esc(msg)}</p>`;
   return { subject, html: layout(b, subject, inner), text: `Hi ${o.customerName},\n\n${msg}\n\n— Ay Ay Tacos` };
 }
+
+export function readyEmail(o: EmailOrder, b: BusinessSettings) {
+  const subject = `Your Ay Ay Tacos order #${o.number} is ready! 🌮`;
+  const inner = `<p style="font-size:17px;margin:0 0 8px">Hi ${esc(o.customerName)},</p>
+<div style="background:${C.green};color:${C.cream};border-radius:10px;padding:16px;text-align:center;margin:12px 0">
+<div style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:${C.mustard}">Ready for pickup</div>
+<div style="font-family:'Arial Black',Impact,sans-serif;font-size:30px">Order #${o.number}</div>
+<div style="font-size:15px">Come on by, it&#39;s hot and waiting for you!</div></div>
+<div style="font-weight:bold;color:${C.green};margin:8px 0 4px">Your order</div>
+${itemsTable(o)}
+<p style="margin:16px 0 4px"><strong>Please give us your order number (#${o.number}) when picking up.</strong></p>`;
+  const text = `Hi ${o.customerName},
+
+Your Ay Ay Tacos order #${o.number} is ready for pickup! Come on by, it's hot and waiting for you.
+
+Your order:
+${itemsText(o)}
+
+Pickup location:
+${addressLines(b).join("\n")}
+
+Please give us your order number when picking up.
+
+— Ay Ay Tacos`;
+  return { subject, html: layout(b, subject, inner), text };
+}
+
+export function readySms(o: { number: number }, b: BusinessSettings): string {
+  return `Ay Ay Tacos: your order #${o.number} is ready for pickup at ${b.addressLine1}, ${b.city}! Please give us your order number when you pick up. Reply STOP to opt out.`;
+}

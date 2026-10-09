@@ -10,6 +10,7 @@ const LINKS: { href: string; label: string; perm: Permission }[] = [
   { href: "/staff/orders", label: "Orders", perm: "orders.manage" },
   { href: "/staff/menu", label: "Menu", perm: "menu.availability" },
   { href: "/staff/schedule", label: "Schedule", perm: "schedule.manage" },
+  { href: "/staff/timing", label: "Timing", perm: "schedule.manage" },
   { href: "/staff/sales", label: "Sales", perm: "sales.view" },
   { href: "/staff/settings", label: "Business", perm: "business.manage" },
   { href: "/staff/users", label: "Staff", perm: "users.manage" },

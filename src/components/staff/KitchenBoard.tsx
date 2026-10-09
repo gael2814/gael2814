@@ -13,6 +13,9 @@ type KOrder = {
   paymentStatus: string;
   notes: string | null;
   totalCents: number;
+  readyAt: string | null;
+  readyNotifiedAt: string | null;
+  smsOptIn: boolean;
   warnings: string[];
   items: { name: string; quantity: number; tacos: number }[];
 };
@@ -66,6 +69,7 @@ export function KitchenBoard({ canManage, canRefund, today }: { canManage: boole
   const [fresh, setFresh] = useState<Set<string>>(new Set());
   const [sound, setSound] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const known = useRef<Set<string> | null>(null);
   const [now, setNow] = useState(Date.now());
 
@@ -134,6 +138,11 @@ export function KitchenBoard({ canManage, canRefund, today }: { canManage: boole
         Kitchen Orders
       </PageTitle>
       {error && <Notice kind="error">{error} — retrying…</Notice>}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-green-700 px-6 py-3 font-bold text-white shadow-xl" role="status">
+          ✓ {toast}
+        </div>
+      )}
 
       {board && (
         <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
@@ -200,6 +209,13 @@ export function KitchenBoard({ canManage, canRefund, today }: { canManage: boole
                 {o.notes && <p className="mt-2 rounded-lg bg-mustard/30 p-2 text-sm"><strong>Note:</strong> {o.notes}</p>}
                 {o.warnings.map((w, k) => <p key={k} className="mt-2 rounded-lg bg-terracotta/15 p-2 text-xs font-semibold text-terracotta-dark">⚠ {w}</p>)}
 
+                {o.readyAt && (
+                  <p className="mt-2 text-xs font-semibold text-green-800">
+                    Ready at {fmtTime(o.readyAt)}
+                    {new Date(o.readyAt).getTime() > t ? ` · ${Math.round((new Date(o.readyAt).getTime() - t) / 60000)} min after promised time` : " · on time"}
+                    {o.readyNotifiedAt ? ` · customer notified${o.smsOptIn ? " (email + text)" : " (email)"}` : ""}
+                  </p>
+                )}
                 <div className="mt-2 flex items-center gap-2 text-xs">
                   <span className={`rounded-full px-2 py-0.5 font-bold ${STATUS[o.status].cls}`}>{STATUS[o.status].label}</span>
                   <span className="rounded-full bg-green-100 px-2 py-0.5 font-bold text-green-800">{o.paymentStatus.replace("_", " ")} · {money(o.totalCents)}</span>
@@ -211,7 +227,18 @@ export function KitchenBoard({ canManage, canRefund, today }: { canManage: boole
                       <button
                         key={s}
                         disabled={busy === o.id}
-                        onClick={() => act(o.id, () => api(`/api/staff/orders/${o.id}/status`, { body: { status: s } }))}
+                        onClick={() =>
+                          act(o.id, async () => {
+                            const r = await api<{ notified: { email: string; sms: string | null } | null }>(`/api/staff/orders/${o.id}/status`, { body: { status: s } });
+                            if (r.notified) {
+                              const label = (st: string, done: string, what: string) =>
+                                st === "sent" ? done : st === "failed" ? `${what} failed` : `${what} not sent (${what === "email" ? "email" : "texting"} isn't set up yet)`;
+                              const how = [label(r.notified.email, "emailed", "email"), r.notified.sms ? label(r.notified.sms, "texted", "text") : null].filter(Boolean).join(", ");
+                              setToast(`#${o.number} is ready. Customer ${how}.`);
+                              setTimeout(() => setToast(null), 5000);
+                            }
+                          })
+                        }
                         className={`rounded-lg px-1 py-3 text-xs font-bold leading-tight ${
                           o.status === s ? STATUS[s].cls + " ring-2 ring-forest" : i === idx + 1 ? "bg-forest text-cream" : "bg-cream-dark text-forest"
                         }`}

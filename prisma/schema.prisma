@@ -143,6 +143,12 @@ model Order {
   paymentSessionId  String?   @unique
   paymentIntentId   String?   @unique
   paidAt            DateTime?
+  // Kitchen timeline, used for customer notifications and estimate accuracy
+  preparingAt       DateTime?
+  readyAt           DateTime?
+  pickedUpAt        DateTime?
+  readyNotifiedAt   DateTime?  // set once, so the "ready" message is never sent twice
+  smsOptIn          Boolean    @default(false) // customer asked for a text when the order is ready
   cancelledAt       DateTime?
   cancelReason      String?
   idempotencyKey    String?   @unique // prevents duplicate checkouts from double-clicks
