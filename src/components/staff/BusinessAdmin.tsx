@@ -65,6 +65,17 @@ export function BusinessAdmin() {
       </Card>
 
       <Card>
+        <h2 className="font-display text-xl text-forest">Homepage signature photo</h2>
+        <p className="text-sm text-ink/70">The big photo in the &quot;Our most popular dish&quot; section. Leave empty to use the built-in quesabirria photo.</p>
+        <div className="mt-2 flex items-center gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={b.heroImageId ? `/api/images/${b.heroImageId}` : "/photos/quesabirrias-griddle.jpg"} alt="Current signature photo" className="h-28 w-28 rounded-full object-cover" />
+          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], "heroImageId")} />
+          {b.heroImageId && <Btn variant="ghost" onClick={() => save("business", { heroImageId: null }, "Signature photo reset.")}>Use default</Btn>}
+        </div>
+      </Card>
+
+      <Card>
         <h2 className="font-display text-xl text-forest">Contact & location</h2>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
           {field("name", "Restaurant name")}

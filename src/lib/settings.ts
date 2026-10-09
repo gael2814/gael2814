@@ -94,7 +94,7 @@ export const DEFAULT_SETTINGS: AllSettings = {
     // Contact details and hours are intentionally blank until the owner enters them.
     phone: "",
     email: "",
-    facebookUrl: "",
+    facebookUrl: "https://www.facebook.com/AyAyTacos", // from the food trailer banner: "@AyAyTacos"
     instagramUrl: "",
     hours: [],
     hoursNote: "Lunch pickup starts at 11:00 AM.",

@@ -12,6 +12,7 @@ export function SiteHeader({ logoUrl, showOrderButton = true }: { logoUrl: strin
         <nav className="flex items-center gap-1 text-[15px] font-semibold text-forest sm:gap-4" aria-label="Main">
           <Link href="/#menu" className="hidden rounded px-2 py-1 hover:text-terracotta sm:inline">Menu</Link>
           <Link href="/#how" className="hidden rounded px-2 py-1 hover:text-terracotta sm:inline">How Pickup Works</Link>
+          <Link href="/#story" className="hidden rounded px-2 py-1 hover:text-terracotta lg:inline">Our Story</Link>
           <Link href="/#visit" className="hidden rounded px-2 py-1 hover:text-terracotta md:inline">Visit Us</Link>
           {showOrderButton && (
             <Link

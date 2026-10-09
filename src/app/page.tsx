@@ -18,6 +18,9 @@ export default async function Home() {
   const s = settings.schedule;
   const logoUrl = imageUrl(b.logoImageId);
   const featured = menu.flatMap((c) => c.items).find((i) => i.featured);
+  // Homepage signature photo: owner upload (Business settings), else the restaurant's griddle shot for quesabirrias.
+  const featuredPhoto =
+    imageUrl(b.heroImageId) ?? (featured?.slug === "quesabirrias" ? "/photos/quesabirrias-griddle.jpg" : (featured?.imageUrl ?? null));
   const address = `${b.addressLine1}, ${b.city}, ${b.state}${b.zip ? " " + b.zip : ""}`;
   const mapsQuery = encodeURIComponent(address);
   const days = WEEKDAYS.filter((d) => s.operatingDays.includes(d.value)).map((d) => d.label);
@@ -55,7 +58,7 @@ export default async function Home() {
         {featured && (
           <section className="bg-terracotta text-cream" aria-labelledby="featured-h">
             <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:grid-cols-[minmax(0,420px)_1fr] md:gap-12">
-              <FoodPhoto src={featured.imageUrl} name={featured.name} ring="border-cream" className="mx-auto aspect-square w-full max-w-[420px] bg-ink/90" />
+              <FoodPhoto src={featuredPhoto} name={featured.name} ring="border-cream" className="mx-auto aspect-square w-full max-w-[420px] bg-ink/90" />
               <div>
                 <p className="font-serif text-xl font-bold italic text-mustard-light">Our most popular dish. Start here!</p>
                 <div className="mt-1 flex flex-wrap items-start justify-between gap-x-6">
@@ -123,6 +126,54 @@ export default async function Home() {
               <Link href="/order" className="inline-block rounded-full bg-terracotta px-9 py-4 font-display text-xl uppercase tracking-wide text-cream shadow-[5px_5px_0_0_#1f3d2b] hover:bg-terracotta-dark">
                 Preorder Lunch
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* OUR STORY */}
+        <section id="story" className="scroll-mt-24 bg-cream-light" aria-labelledby="story-h">
+          <div className="zigzag" aria-hidden />
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 md:grid-cols-[1fr_1.1fr]">
+            <div>
+              <p className="font-serif text-xl font-bold italic text-terracotta">Good Food · Good People · Better Tacos</p>
+              <h2 id="story-h" className="font-display text-4xl text-forest sm:text-5xl">Our Story</h2>
+              <p className="mt-3 text-lg text-ink/80">
+                Ay Ay Tacos started small and grew one plate at a time, thanks to our neighbors in Northern Maine.
+              </p>
+              <ol className="mt-6 space-y-5">
+                {[
+                  ["Our home kitchen", "We started out cooking everything from scratch in our own kitchen."],
+                  ["The food trailer", "Three months later, we took our tacos on the road in a little red food trailer."],
+                  [`${b.addressLine1}`, `Six months after that, we opened our doors in ${b.city}. Same recipes, same family, more room.`],
+                ].map(([t, d], i) => (
+                  <li key={t} className="flex gap-4">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-forest font-display text-lg text-mustard">{i + 1}</span>
+                    <div>
+                      <h3 className="font-serif text-2xl font-bold text-ink">{t}</h3>
+                      <p className="text-[17px] text-ink/80">{d}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-6 font-display text-2xl leading-tight text-forest">
+                Gracias for supporting <span className="text-terracotta">our small business!</span>
+              </p>
+            </div>
+            <div className="relative mx-auto h-[420px] w-full max-w-[520px] sm:h-[500px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/photos/food-trailer.jpg"
+                alt="The Ay Ay Tacos red food trailer with its Authentic Mexican Food banner"
+                loading="lazy"
+                className="absolute left-0 top-0 h-[78%] w-[62%] -rotate-2 rounded-sm border-[10px] border-white object-cover shadow-xl"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/photos/food-trailer-crowd.jpg"
+                alt="Customers lined up at the Ay Ay Tacos food trailer"
+                loading="lazy"
+                className="absolute bottom-0 right-0 h-[66%] w-[56%] rotate-3 rounded-sm border-[10px] border-white object-cover shadow-xl"
+              />
             </div>
           </div>
         </section>
