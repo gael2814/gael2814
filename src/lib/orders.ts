@@ -11,6 +11,7 @@ import { getPaymentProvider, getProviderByName } from "./payments";
 import { sendEmail } from "./email/send";
 import { cancelledEmail, confirmationEmail, pickupChangedEmail, readyEmail, readySms, refundEmail, type EmailOrder } from "./email/templates";
 import { sendSms } from "./sms";
+import { siteUrl } from "./site-url";
 
 type Tx = Prisma.TransactionClient;
 
@@ -267,7 +268,7 @@ export async function createCheckout(input: CheckoutInput, appUrl: string) {
 
 async function resumeUrl(sessionId: string, providerName: string | null, orderId: string): Promise<string | null> {
   if (providerName === "mock") {
-    const base = process.env.APP_URL ?? "http://localhost:3000";
+    const base = siteUrl();
     return `${base}/checkout/test-payment?session=${sessionId}&order=${orderId}`;
   }
   try {
@@ -347,7 +348,7 @@ export async function markPaymentFailed(orderId: string, reason: string) {
 async function emailOrder(orderId: string) {
   const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true } });
   const settings = await getSettings();
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = siteUrl();
   const eo: EmailOrder = {
     number: order.number,
     customerName: order.customerName,

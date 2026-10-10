@@ -7,7 +7,7 @@ const serif = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], weight
 const body = Source_Sans_3({ subsets: ["latin"], variable: "--font-body", display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_URL ?? "https://ayaytacos.com"),
+  metadataBase: new URL(process.env.APP_URL ?? "https://ayaytacos.com"), // emails/redirects use siteUrl()
   title: { default: "Ay Ay Tacos | Authentic Mexican Food in Caribou, Maine", template: "%s | Ay Ay Tacos" },
   description:
     "Authentic Mexican food, made from scratch in Northern Maine. Preorder quesabirrias and lunch for pickup at 117 Sweden Street, Caribou.",

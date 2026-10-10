@@ -1,4 +1,5 @@
 import { formatCentsExact } from "../money";
+import { siteUrl } from "../site-url";
 import { formatDate, formatTime } from "../time";
 import type { BusinessSettings } from "../settings";
 
@@ -23,7 +24,7 @@ function esc(s: string): string {
 
 const C = { green: "#1f3d2b", terracotta: "#c4562a", mustard: "#e3a52b", cream: "#f3ebdc", ink: "#2a1f17" };
 
-const logoUrl = () => `${(process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "")}/brand/logo.png`;
+const logoUrl = () => `${siteUrl()}/brand/logo.png`;
 
 function addressLines(b: BusinessSettings): string[] {
   return [b.addressLine1, [b.city, b.state].filter(Boolean).join(", ") + (b.zip ? ` ${b.zip}` : "")].filter(Boolean);

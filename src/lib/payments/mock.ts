@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import type { PaymentProvider } from "./types";
 import { prisma } from "../db";
+import { siteUrl } from "../site-url";
 
 /**
  * Local test provider so the full ordering flow can be previewed without
@@ -10,7 +11,7 @@ export const mockProvider: PaymentProvider = {
   name: "mock",
   async createCheckout(req) {
     const sessionId = `mock_cs_${randomBytes(12).toString("hex")}`;
-    const base = process.env.APP_URL ?? "http://localhost:3000";
+    const base = siteUrl();
     return { sessionId, url: `${base}/checkout/test-payment?session=${sessionId}&order=${req.orderId}` };
   },
   async getSessionStatus(sessionId) {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { AuthError } from "./auth";
 import { OrderError } from "./orders";
+import { siteUrl } from "./site-url";
 
 export function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -39,7 +40,7 @@ export function route<T extends unknown[]>(fn: (...args: T) => Promise<Response>
 }
 
 export function appUrl(req: Request): string {
-  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
+  if (process.env.APP_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL) return siteUrl();
   const u = new URL(req.url);
   return `${u.protocol}//${u.host}`;
 }
