@@ -105,7 +105,7 @@ npm test
 1. Create an account at <https://dashboard.stripe.com>. Stay in **Test mode** at first.
 2. **Developers → API keys**: copy the *Secret key* (`sk_test_…`) into `STRIPE_SECRET_KEY`. Set `PAYMENTS_PROVIDER="stripe"`.
 3. **Developers → Webhooks → Add endpoint**:
-   * URL: `https://YOUR-DOMAIN/api/payments/stripe/webhook`
+   * URL: `https://ayaytacos.com/api/payments/stripe/webhook`
    * Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
      `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`
    * Copy the *Signing secret* (`whsec_…`) into `STRIPE_WEBHOOK_SECRET`.
@@ -119,7 +119,7 @@ For local webhook testing: `stripe listen --forward-to localhost:3000/api/paymen
 
 1. Create an account at <https://resend.com> and **add and verify your domain** by adding the DNS records it shows you.
 2. Create an API key and put it in `RESEND_API_KEY`.
-3. Set `EMAIL_FROM`, e.g. `Ay Ay Tacos <orders@yourdomain.com>`. It must use the verified domain. Optionally set `EMAIL_REPLY_TO` to the restaurant inbox.
+3. Set `EMAIL_FROM` to `Ay Ay Tacos <orders@ayaytacos.com>`. It must use the verified domain. Set `EMAIL_REPLY_TO` to `ayaytacosmaine@gmail.com` so customer replies reach the restaurant inbox. No mailbox is needed for orders@.
 
 ## "Order ready" messages and pickup time accuracy
 

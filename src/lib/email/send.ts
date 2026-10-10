@@ -1,4 +1,5 @@
 import { prisma } from "../db";
+import { getSettings } from "../settings";
 
 export type OutgoingEmail = { to: string; subject: string; html: string; text: string; kind: string; orderId?: string };
 
@@ -9,9 +10,12 @@ export type OutgoingEmail = { to: string; subject: string; html: string; text: s
  */
 export async function sendEmail(email: OutgoingEmail): Promise<"sent" | "logged" | "failed"> {
   const key = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM ?? "Ay Ay Tacos <onboarding@resend.dev>";
+  const from = process.env.EMAIL_FROM ?? "Ay Ay Tacos <orders@ayaytacos.com>";
   let status: "sent" | "logged" | "failed" = "logged";
   let error: string | null = null;
+
+  // Customer replies go to the restaurant inbox (EMAIL_REPLY_TO, else the email in Business settings).
+  const replyTo = process.env.EMAIL_REPLY_TO || (await getSettings().catch(() => null))?.business.email || null;
 
   if (!key) {
     if (process.env.NODE_ENV !== "test") console.info(`[email:not-sent] RESEND_API_KEY missing. To: ${email.to} Subject: ${email.subject}\n${email.text}`);
@@ -26,7 +30,7 @@ export async function sendEmail(email: OutgoingEmail): Promise<"sent" | "logged"
           subject: email.subject,
           html: email.html,
           text: email.text,
-          ...(process.env.EMAIL_REPLY_TO ? { reply_to: process.env.EMAIL_REPLY_TO } : {}),
+          ...(replyTo ? { reply_to: replyTo } : {}),
         }),
       });
       if (res.ok) status = "sent";

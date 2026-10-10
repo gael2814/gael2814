@@ -451,6 +451,8 @@ describe("tips (team tip pool)", () => {
       expect(sent[0].text).toContain("Tip for the team: $7.50");
       expect(sent[0].text).toContain("Total paid: $61.50");
       expect(sent[0].html).toContain("Gracias for your tip!");
+      // customer replies reach the restaurant inbox
+      expect((sent[0] as unknown as { reply_to: string }).reply_to).toBe("ayaytacosmaine@gmail.com");
     } finally {
       spy.mockRestore();
       delete process.env.RESEND_API_KEY;
