@@ -1,0 +1,307 @@
+import Link from "next/link";
+import { getPublicMenu, imageUrl } from "@/lib/menu";
+import { getCurrentPreorderStatus } from "@/lib/public-status";
+import { formatCents } from "@/lib/money";
+import { formatHHmm, WEEKDAYS } from "@/lib/time";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
+import { Logo } from "@/components/Logo";
+import { PreorderBadge } from "@/components/PreorderBadge";
+import { MenuBoard } from "@/components/MenuBoard";
+import { FoodPhoto } from "@/components/FoodPhoto";
+import { LoopVideo } from "@/components/LoopVideo";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const [{ settings, status }, menu] = await Promise.all([getCurrentPreorderStatus(), getPublicMenu()]);
+  const b = settings.business;
+  const s = settings.schedule;
+  const logoUrl = imageUrl(b.logoImageId);
+  const featured = menu.flatMap((c) => c.items).find((i) => i.featured);
+  // Homepage signature photo: owner upload (Business settings), else the restaurant's griddle shot for quesabirrias.
+  const featuredPhoto =
+    imageUrl(b.heroImageId) ?? (featured?.slug === "quesabirrias" ? "/photos/quesabirrias-griddle.jpg" : (featured?.imageUrl ?? null));
+  const address = `${b.addressLine1}, ${b.city}, ${b.state}${b.zip ? " " + b.zip : ""}`;
+  const mapsQuery = encodeURIComponent(address);
+  const days = WEEKDAYS.filter((d) => s.operatingDays.includes(d.value)).map((d) => d.label);
+
+  return (
+    <>
+      <SiteHeader logoUrl={logoUrl} />
+      <main id="main">
+        {/* HERO — mirrors the top of the printed menu */}
+        <section className="bg-cream">
+          <div className="mx-auto grid max-w-6xl items-center gap-6 px-4 pb-12 pt-8 sm:grid-cols-[auto_1fr] sm:gap-10 sm:pt-12">
+            <Logo logoUrl={logoUrl} size={230} className="mx-auto w-40 sm:w-[230px]" />
+            <div className="text-center sm:text-left">
+              <h1 className="font-display text-4xl leading-[1.08] text-forest sm:text-5xl lg:text-6xl">{b.tagline}</h1>
+              <p className="mt-3 font-serif text-xl font-bold italic text-terracotta sm:text-2xl">
+                New to Mexican food? Every dish has a short note telling you what&apos;s in it.
+              </p>
+              <p className="mt-2 text-lg text-ink/70">
+                {b.addressLine1} · {b.city}, {b.state} · Dine in or takeout
+              </p>
+              <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:items-center">
+                <Link
+                  href="/order"
+                  className="rounded-full bg-terracotta px-9 py-4 font-display text-2xl uppercase tracking-wider text-cream shadow-[5px_5px_0_0_#1f3d2b] transition hover:-translate-y-0.5 hover:bg-terracotta-dark"
+                >
+                  Preorder Lunch
+                </Link>
+                <PreorderBadge status={status} schedule={s} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FEATURED — "Our most popular dish. Start here!" */}
+        {featured && (
+          <section className="bg-terracotta text-cream" aria-labelledby="featured-h">
+            <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:grid-cols-[minmax(0,420px)_1fr] md:gap-12">
+              <FoodPhoto src={featuredPhoto} name={featured.name} ring="border-cream" className="mx-auto aspect-square w-full max-w-[420px] bg-ink/90" />
+              <div>
+                <p className="font-serif text-xl font-bold italic text-mustard-light">Our most popular dish. Start here!</p>
+                <div className="mt-1 flex flex-wrap items-start justify-between gap-x-6">
+                  <h2 id="featured-h" className="font-display text-4xl leading-[1.05] sm:text-5xl">{featured.name}</h2>
+                  <span className="font-display text-6xl text-mustard-light">{formatCents(featured.priceCents)}</span>
+                </div>
+                {featured.pronunciation && <p className="mt-1 font-serif text-lg font-semibold italic text-cream/85">{featured.pronunciation}</p>}
+                <p className="mt-3 text-xl leading-snug">{featured.description}</p>
+                <ol className="mt-6 grid grid-cols-3 gap-4">
+                  {[
+                    ["Dip", "the taco in the warm broth"],
+                    ["Bite", "crispy, cheesy, juicy"],
+                    ["Repeat", "sip the broth at the end"],
+                  ].map(([t, d], i) => (
+                    <li key={t} className="border-t-[3px] border-cream/50 pt-2">
+                      <span className="font-display text-xl">{i + 1}. {t}</span>
+                      <span className="block text-[15px] leading-snug text-cream/90">{d}</span>
+                    </li>
+                  ))}
+                </ol>
+                <Link href="/order" className="mt-7 inline-block rounded-full bg-cream px-7 py-3 font-display uppercase tracking-wide text-terracotta-dark hover:bg-cream-light">
+                  Preorder yours →
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* HOW IT WORKS */}
+        <section id="how" className="scroll-mt-24 bg-forest text-cream">
+          <div className="mx-auto max-w-6xl px-4 py-14">
+            <p className="font-serif text-xl font-bold italic text-mustard">Skip the wait</p>
+            <h2 className="font-display text-4xl sm:text-5xl">How Online Pickup Works</h2>
+            <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                ["Order in the morning", `Preorders open at ${formatHHmm(s.preorderOpen)} and close at ${formatHHmm(s.preorderClose)}${days.length ? ` (${days.join(", ")})` : ""}.`],
+                ["Get your pickup time", "We give you a realistic pickup time based on what our kitchen is already cooking."],
+                ["Pay securely", "Pay online with card, Apple Pay or Google Pay. You'll get an email with your order number."],
+                [`Pick up at ${b.addressLine1}`, `Lunch pickup starts at ${formatHHmm(s.pickupStart)}. Just give us your order number.`],
+              ].map(([title, text], i) => (
+                <li key={title} className="border-t-[3px] border-cream/30 pt-3">
+                  <span className="font-display text-4xl text-mustard">{i + 1}.</span>
+                  <h3 className="mt-1 font-serif text-2xl font-bold">{title}</h3>
+                  <p className="mt-1 text-[17px] text-cream/85">{text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* MENU */}
+        <section id="menu" className="scroll-mt-24 bg-cream pb-14">
+          <div className="zigzag" aria-hidden />
+          <div className="mx-auto max-w-6xl px-4 pb-10 pt-12 text-center">
+            <h2 className="font-display text-5xl text-forest sm:text-6xl">Our Menu</h2>
+            <p className="mt-2 font-serif text-xl font-bold italic text-terracotta">Something to share, something to sip, something sweet.</p>
+          </div>
+          <MenuBoard menu={menu} skipItemIds={featured ? [featured.id] : []} />
+          <div className="mx-auto mt-12 max-w-6xl px-4">
+            <div className="border-2 border-dashed border-terracotta/60 bg-cream-light p-4 text-[15px]" role="note">
+              <strong className="font-serif text-terracotta">Allergy information: </strong>
+              {b.allergyNotice}
+            </div>
+            <div className="mt-8 text-center">
+              <Link href="/order" className="inline-block rounded-full bg-terracotta px-9 py-4 font-display text-xl uppercase tracking-wide text-cream shadow-[5px_5px_0_0_#1f3d2b] hover:bg-terracotta-dark">
+                Preorder Lunch
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* OUR STORY */}
+        <section id="story" className="scroll-mt-24 bg-cream-light" aria-labelledby="story-h">
+          <div className="zigzag" aria-hidden />
+
+          {/* Meet Val */}
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-8 pt-14 md:grid-cols-[0.9fr_1.1fr]">
+            <figure className="mx-auto w-full max-w-[380px] -rotate-2 bg-white p-3 pb-4 shadow-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/photos/val-van-buren-keys.jpg" alt="Val smiling in front of the doors of the new Van Buren location" loading="lazy" className="aspect-[4/5] w-full object-cover" />
+              <figcaption className="mt-3 text-center font-serif text-lg font-bold italic text-ink/80">The day we got the keys to Van Buren!</figcaption>
+            </figure>
+            <div>
+              <p className="font-serif text-xl font-bold italic text-terracotta">Good Food · Good People · Better Tacos</p>
+              <h2 id="story-h" className="font-display text-4xl text-forest sm:text-5xl">Hola, I&apos;m Val!</h2>
+              <p className="mt-4 text-lg leading-relaxed text-ink/85">
+                My name is Valeria, but everybody calls me Val. I&apos;m Mexican American, born in San Diego, California, and raised
+                between two borders: Tijuana and San Diego, Mexicali and Calexico. A true border kid.
+              </p>
+              <p className="mt-3 text-lg leading-relaxed text-ink/85">
+                The food I grew up with on both sides of the border is the food we make for you here in Northern Maine:
+                authentic, from scratch, and made with love.
+              </p>
+            </div>
+          </div>
+
+          {/* Journey */}
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-10 md:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <h3 className="font-display text-3xl text-forest sm:text-4xl">From our kitchen to your table</h3>
+              <ol className="mt-6 space-y-5">
+                {[
+                  ["Our home kitchen", "We started out cooking everything from scratch at home, out of our kitchen and garage."],
+                  ["The food trailer", "Three months later, we took our tacos on the road in a little red food trailer. The lines in Houlton were wild!"],
+                  [`${b.addressLine1}, ${b.city}`, "Six months after that, we opened our brick-and-mortar restaurant."],
+                  ["Coming soon: Van Buren", "We just got the keys to our second location in Van Buren. It's under construction now!"],
+                ].map(([t, d], i) => (
+                  <li key={t} className="flex gap-4">
+                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-lg ${i === 3 ? "bg-terracotta text-cream" : "bg-forest text-mustard"}`}>{i + 1}</span>
+                    <div>
+                      <h4 className="font-serif text-2xl font-bold text-ink">{t}</h4>
+                      <p className="text-[17px] text-ink/80">{d}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="relative mx-auto h-[460px] w-full max-w-[460px] sm:h-[520px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/photos/food-trailer.jpg"
+                alt="The Ay Ay Tacos red food trailer with its Authentic Mexican Food banner"
+                loading="lazy"
+                className="absolute left-0 top-0 h-[74%] w-[60%] -rotate-3 border-[10px] border-white object-cover shadow-xl"
+              />
+              <figure className="absolute bottom-0 right-0 w-[52%] rotate-2 bg-white p-2 pb-3 shadow-xl">
+                <LoopVideo src="/videos/houlton-line.mp4" poster="/videos/houlton-line.jpg" label="Video: the line at the Ay Ay Tacos trailer in Houlton" className="aspect-[9/16] w-full object-cover" />
+                <figcaption className="mt-1 text-center font-serif text-sm font-bold italic text-ink/80">The line in Houlton. It was wild!</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          {/* Family */}
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-6 md:grid-cols-[0.8fr_1.2fr]">
+            <figure className="mx-auto w-full max-w-[340px] rotate-2 bg-white p-3 pb-4 shadow-xl md:order-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/photos/taylor-wayne-val.jpg" alt="Taylor, Wayne and Val" loading="lazy" className="aspect-[4/5] w-full object-cover object-top" />
+              <figcaption className="mt-3 text-center font-serif text-lg font-bold italic text-ink/80">Taylor, Wayne &amp; Val</figcaption>
+            </figure>
+            <div className="md:order-1">
+              <h3 className="font-display text-3xl text-forest sm:text-4xl">The Ay Ay family</h3>
+              <ul className="mt-5 space-y-4 text-lg text-ink/85">
+                <li><strong className="font-serif text-xl text-ink">Val</strong>, owner, the border kid behind Ay Ay Tacos.</li>
+                <li><strong className="font-serif text-xl text-ink">Wayne</strong>, our CFO, my husband and the love of my life.</li>
+                <li><strong className="font-serif text-xl text-ink">Taylor</strong>, who started with us back in the garage. We love her!</li>
+              </ul>
+              <p className="mt-6 font-display text-2xl leading-tight text-forest">
+                Gracias for supporting <span className="text-terracotta">our small business!</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Tip pool */}
+          <div id="tip-pool" className="scroll-mt-24 bg-mustard">
+            <div className="mx-auto grid max-w-6xl gap-6 px-4 py-12 md:grid-cols-[1fr_1.4fr] md:items-center">
+              <div>
+                <p className="font-serif text-xl font-bold italic text-brick">We all work as a team</p>
+                <h3 className="font-display text-4xl text-forest sm:text-5xl">Our tip pool</h3>
+              </div>
+              <div className="space-y-3 text-lg leading-relaxed text-ink">
+                <p>
+                  Ay Ay Tacos works with a <strong>tip pool</strong>. That means every tip, whether it&apos;s left at the counter or added to an
+                  online order, goes into one shared pot instead of to a single person.
+                </p>
+                <p>
+                  At the end of the day, the tips are divided among <strong>all our team members</strong>: our dishwashing crew, prep crew,
+                  cashiers, bussers and everyone who helps get your food to you.
+                </p>
+                <p className="font-serif text-xl font-bold italic text-forest">We love you, and thank you for giving them this additional gift!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* VISIT */}
+        <section id="visit" className="scroll-mt-20 bg-forest text-cream">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 md:grid-cols-2">
+            <div>
+              <h2 className="font-display text-4xl text-mustard sm:text-5xl">Visit Us</h2>
+              <address className="mt-4 text-xl not-italic leading-relaxed">
+                {b.addressLine1}
+                <br />
+                {b.city}, {b.state} {b.zip}
+              </address>
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${mapsQuery}`}
+                target="_blank"
+                rel="noopener"
+                className="mt-4 inline-block rounded-full bg-mustard px-5 py-2 font-display text-forest hover:bg-mustard-light"
+              >
+                Get directions
+              </a>
+
+              <h3 className="mt-8 font-serif text-2xl font-bold text-mustard">Hours</h3>
+              {b.hours.length > 0 ? (
+                <dl className="mt-2 grid max-w-sm grid-cols-[auto_1fr] gap-x-6 gap-y-1">
+                  {b.hours.map((h, i) => (
+                    <div key={i} className="contents">
+                      <dt className="font-semibold">{h.label}</dt>
+                      <dd>{h.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <p className="mt-2 opacity-90">Hours will be posted soon.</p>
+              )}
+              {b.hoursNote && <p className="mt-2 text-sm opacity-90">{b.hoursNote}</p>}
+
+              {(b.phone || b.email) && (
+                <>
+                  <h3 className="mt-8 font-serif text-2xl font-bold text-mustard">Contact</h3>
+                  <p className="mt-2 space-y-1">
+                    {b.phone && (
+                      <a className="block underline" href={`tel:${b.phone.replace(/[^\d+]/g, "")}`}>{b.phone}</a>
+                    )}
+                    {b.email && (
+                      <a className="block underline" href={`mailto:${b.email}`}>{b.email}</a>
+                    )}
+                  </p>
+                </>
+              )}
+            </div>
+            <div className="overflow-hidden rounded-2xl border-4 border-mustard">
+              <iframe
+                title="Map to Ay Ay Tacos"
+                src={`https://www.google.com/maps?q=${mapsQuery}&output=embed`}
+                className="h-80 w-full md:h-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter business={b} />
+      {/* Mobile sticky order button */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t-4 border-mustard bg-cream p-3 sm:hidden">
+        <Link href="/order" className="block rounded-full bg-terracotta py-3 text-center font-display text-lg uppercase tracking-wide text-cream">
+          Preorder Lunch
+        </Link>
+      </div>
+      <div className="h-20 sm:hidden" aria-hidden />
+    </>
+  );
+}

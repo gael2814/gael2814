@@ -1,0 +1,1 @@
+ALTER SEQUENCE "Order_number_seq" RESTART WITH 1001;

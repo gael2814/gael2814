@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --forest: #1f3d2b;
+  --terracotta: #c4562a;
+  --mustard: #e3a52b;
+  --cream: #f3ebdc;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--cream);
+  color: #2a1f17;
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Talavera-inspired tile pattern */
+.bg-talavera {
+  background-color: var(--forest);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23e3a52b' stroke-opacity='.22' stroke-width='2'%3E%3Cpath d='M40 6 L48 32 L74 40 L48 48 L40 74 L32 48 L6 40 L32 32 Z'/%3E%3Ccircle cx='40' cy='40' r='7'/%3E%3Cpath d='M0 0 Q20 20 0 40 M80 0 Q60 20 80 40 M0 80 Q20 60 0 40 M80 80 Q60 60 80 40'/%3E%3C/g%3E%3Cg fill='%23c4562a' fill-opacity='.35'%3E%3Ccircle cx='40' cy='40' r='3'/%3E%3Ccircle cx='0' cy='0' r='4'/%3E%3Ccircle cx='80' cy='0' r='4'/%3E%3Ccircle cx='0' cy='80' r='4'/%3E%3Ccircle cx='80' cy='80' r='4'/%3E%3C/g%3E%3C/svg%3E");
+}
+.bg-talavera-light {
+  background-color: var(--cream);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%231f3d2b' stroke-opacity='.07' stroke-width='1.5'%3E%3Cpath d='M32 4 L38 26 L60 32 L38 38 L32 60 L26 38 L4 32 L26 26 Z'/%3E%3Ccircle cx='32' cy='32' r='5'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Zigzag border from the printed menu (green / terracotta / mustard triangles) */
+.zigzag {
+  height: 14px;
+  background-color: var(--cream);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='54' height='14' viewBox='0 0 54 14'%3E%3Cpath d='M0 0h18L9 14z' fill='%231f3d2b'/%3E%3Cpath d='M18 0h18l-9 14z' fill='%23c4562a'/%3E%3Cpath d='M36 0h18l-9 14z' fill='%23e3a52b'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 54px 14px;
+}
+.zigzag-up { transform: scaleY(-1); }
+/* kept for the staff header */
+.serape {
+  height: 6px;
+  background: repeating-linear-gradient(90deg, var(--terracotta) 0 18px, var(--mustard) 18px 36px, var(--forest) 36px 54px);
+}
+
+/* Dotted leader between dish name and price, like a printed menu */
+.leader { flex: 1; border-bottom: 3px dotted rgba(154, 128, 96, 0.55); margin: 0 0.5rem 0.35rem; min-width: 1rem; }
+
+.text-shadow-stamp { text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.25); }
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  .print-break { page-break-before: always; }
+}
+
+:focus-visible { outline: 3px solid var(--mustard); outline-offset: 2px; }

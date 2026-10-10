@@ -1,0 +1,226 @@
+// Ay Ay Tacos database schema.
+// Money is stored in integer cents. Dates for service days are "YYYY-MM-DD"
+// strings in the restaurant's timezone (America/New_York).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  MANAGER
+  KITCHEN
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT // capacity held while customer is on the payment page
+  CONFIRMED       // paid
+  PREPARING
+  READY
+  PICKED_UP
+  CANCELLED
+  EXPIRED         // payment abandoned or failed; capacity released
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  name      String
+  subtitle  String?
+  sortOrder Int        @default(0)
+  items     MenuItem[]
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String   @default("")
+  /// Pronunciation guide shown next to the name, e.g. "hah-MY-kah"
+  pronunciation String?
+  priceCents  Int
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  imageId     String?
+  sortOrder   Int      @default(0)
+  featured    Boolean  @default(false)
+  priceUnderReview Boolean @default(false)
+
+  // Availability
+  active         Boolean @default(true) // shown on the website
+  preorderable   Boolean @default(true) // can be added to a lunch preorder
+  soldOut        Boolean @default(false)
+  dailyLimit     Int?    // max quantity sold per service day (null = unlimited)
+
+  // Preparation settings
+  prepUnits      Float   @default(1)   // kitchen workload units per 1 item (1 unit = 1 quesabirria order)
+  tacosPerItem   Int     @default(0)   // individual tacos per item, for production totals
+  productionNote String?
+
+  recipe      RecipeLine[]
+  orderItems  OrderItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Image {
+  id          String   @id @default(cuid())
+  contentType String
+  data        Bytes
+  createdAt   DateTime @default(now())
+}
+
+model Ingredient {
+  id         String       @id @default(cuid())
+  name       String       @unique
+  unit       String       // unit used in recipes and reports, e.g. "oz", "each", "lb"
+  // Optional cooked-vs-raw yield. Recipes are written in the cooked/prepared
+  // amount; report shows raw amount = cooked / yieldPercent * 100.
+  yieldPercent Float?
+  rawLabel   String?      // e.g. "raw beef chuck"
+  notes      String?
+  lines      RecipeLine[]
+}
+
+model RecipeLine {
+  id           String     @id @default(cuid())
+  menuItemId   String
+  menuItem     MenuItem   @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  quantity     Float      // per 1 menu item, in the ingredient's unit
+  @@unique([menuItemId, ingredientId])
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  number        Int           @unique @default(autoincrement())
+  publicToken   String        @unique // used for customer status tracking without an account
+  serviceDate   String        // YYYY-MM-DD (America/New_York)
+  pickupAt      DateTime      // assigned pickup slot start
+  status        OrderStatus   @default(PENDING_PAYMENT)
+  paymentStatus PaymentStatus @default(UNPAID)
+  holdExpiresAt DateTime?     // capacity hold for PENDING_PAYMENT orders
+
+  customerName  String
+  customerPhone String
+  customerEmail String
+  notes         String?
+
+  subtotalCents Int
+  taxCents      Int
+  tipCents      Int           @default(0) // goes to the team tip pool; not taxed
+  totalCents    Int           // subtotal + tax + tip
+  taxRateBps    Int           // tax rate used, in basis points (800 = 8%)
+  refundedCents Int           @default(0)
+  workUnits     Float         // total kitchen workload for capacity planning
+
+  paymentProvider   String?
+  paymentSessionId  String?   @unique
+  paymentIntentId   String?   @unique
+  paidAt            DateTime?
+  // Kitchen timeline, used for customer notifications and estimate accuracy
+  preparingAt       DateTime?
+  readyAt           DateTime?
+  pickedUpAt        DateTime?
+  readyNotifiedAt   DateTime?  // set once, so the "ready" message is never sent twice
+  smsOptIn          Boolean    @default(false) // customer asked for a text when the order is ready
+  cancelledAt       DateTime?
+  cancelReason      String?
+  idempotencyKey    String?   @unique // prevents duplicate checkouts from double-clicks
+
+  items     OrderItem[]
+  events    OrderEvent[]
+  emails    EmailLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serviceDate, status])
+  @@index([pickupAt])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId  String
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id])
+  name        String   // snapshot at time of order
+  unitCents   Int
+  quantity    Int
+  prepUnits   Float    // snapshot per item
+  tacosPerItem Int     @default(0)
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type      String
+  message   String
+  actor     String?
+  createdAt DateTime @default(now())
+}
+
+model PaymentEvent {
+  id        String   @id // provider event id (e.g. Stripe evt_...) - guarantees idempotency
+  provider  String
+  type      String
+  createdAt DateTime @default(now())
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  to        String
+  subject   String
+  kind      String
+  status    String   // sent | logged | failed
+  error     String?
+  createdAt DateTime @default(now())
+}
+
+model ClosedDate {
+  id     String @id @default(cuid())
+  date   String @unique // YYYY-MM-DD
+  reason String?
+}
+
+model ProductionSnapshot {
+  id          String   @id @default(cuid())
+  serviceDate String   @unique
+  data        Json
+  createdAt   DateTime @default(now())
+}
+
+// Single-row key/value settings store (business info, hours, schedule, capacity)
+model Setting {
+  key   String @id
+  value Json
+}
