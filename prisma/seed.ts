@@ -89,33 +89,7 @@ const MENU: { slug: string; name: string; subtitle?: string; items: SeedItem[] }
         prepUnits: 0.53, // owner: 8 orders take ~8 min (vs 15 min for 8 quesabirria orders)
         tacosPerItem: 3,
       },
-      {
-        slug: "tostadas-de-tinga",
-        name: "2 Tostadas de Tinga",
-        priceCents: 1500,
-        description:
-          "Two crispy flat corn tortillas topped with shredded chicken tinga (TEEN-gah), lettuce, crema, queso and salsa.",
-        prepUnits: 1,
-      },
     ],
-  },
-  {
-    slug: "large-tacos",
-    name: "Tacos",
-    subtitle: "Large tacos on fresh flour tortillas · mix and match",
-    items: [
-      ["Machaca", "Shredded seasoned beef with onion and cilantro."],
-      ["Chorizo", "Mexican-style chorizo sausage with potatoes and egg."],
-      ["Picadillo", "Seasoned ground beef with potatoes."],
-      ["Bistec", "Grilled steak with onions and cilantro."],
-    ].map(([n, description]) => ({
-      slug: `taco-${n.toLowerCase()}`,
-      name: n,
-      priceCents: 900,
-      description,
-      priceUnderReview: true,
-      prepUnits: 0.35,
-    })),
   },
   {
     slug: "family-meals",
@@ -167,15 +141,6 @@ const MENU: { slug: string; name: string; subtitle?: string; items: SeedItem[] }
         description: "Hibiscus flower drink. Fruity, refreshing and slightly tart.",
         prepUnits: 0.1,
       },
-      {
-        slug: "horchata",
-        name: "Horchata",
-        pronunciation: "or-CHAH-tah",
-        priceCents: 600,
-        description: "Sweet, creamy cinnamon rice drink.",
-        prepUnits: 0.1,
-      },
-      { slug: "strawberry-creamy", name: "Strawberry Creamy", priceCents: 750, prepUnits: 0.1 },
       { slug: "cucumber-limeade", name: "Cucumber Limeade", priceCents: 600, prepUnits: 0.1 },
       {
         slug: "cafe-de-olla",
@@ -191,13 +156,6 @@ const MENU: { slug: string; name: string; subtitle?: string; items: SeedItem[] }
     name: "Dessert",
     subtitle: "per slice",
     items: [
-      {
-        slug: "chocoflan",
-        name: "Chocoflan",
-        priceCents: 600,
-        description: "Chocolate cake and creamy flan baked together.",
-        prepUnits: 0.05,
-      },
       { slug: "tres-leches", name: "Tres Leches", priceCents: 600, description: "Soft sponge cake soaked in three milks.", prepUnits: 0.05 },
     ],
   },
@@ -221,6 +179,34 @@ const MENU: { slug: string; name: string; subtitle?: string; items: SeedItem[] }
 const PHOTO_DIR = path.join(__dirname, "seed-assets", "menu");
 
 async function main() {
+  // The starter menu, photos and recipes are loaded only into a brand-new database.
+  // After that the menu belongs to the owner: edits and deletions made in the
+  // dashboard are never undone by later deploys.
+  const freshInstall = (await prisma.menuItem.count()) === 0;
+  if (freshInstall) await seedMenu();
+  else console.log("Menu already set up; leaving it as the owner left it.");
+
+  if ((await prisma.user.count()) === 0) {
+    const email = process.env.ADMIN_EMAIL;
+    const password = process.env.ADMIN_PASSWORD;
+    if (!email || !password) {
+      console.warn("No users exist. Set ADMIN_EMAIL and ADMIN_PASSWORD and re-run the seed to create the owner account.");
+    } else {
+      await prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          name: process.env.ADMIN_NAME ?? "Owner",
+          role: "OWNER",
+          passwordHash: await bcrypt.hash(password, 12),
+        },
+      });
+      console.log(`Created owner account ${email}`);
+    }
+  }
+  console.log("Seed complete.");
+}
+
+async function seedMenu() {
   for (const [ci, cat] of MENU.entries()) {
     const category = await prisma.category.upsert({
       where: { slug: cat.slug },
@@ -285,25 +271,6 @@ async function main() {
   };
   await recipe("quesabirrias", [[birria.id, 3], [cheese.id, 9], [tortilla.id, 3]]);
   await recipe("quesabirria-family-pack", [[birria.id, 10], [cheese.id, 30], [tortilla.id, 10]]);
-
-  if ((await prisma.user.count()) === 0) {
-    const email = process.env.ADMIN_EMAIL;
-    const password = process.env.ADMIN_PASSWORD;
-    if (!email || !password) {
-      console.warn("No users exist. Set ADMIN_EMAIL and ADMIN_PASSWORD and re-run the seed to create the owner account.");
-    } else {
-      await prisma.user.create({
-        data: {
-          email: email.toLowerCase(),
-          name: process.env.ADMIN_NAME ?? "Owner",
-          role: "OWNER",
-          passwordHash: await bcrypt.hash(password, 12),
-        },
-      });
-      console.log(`Created owner account ${email}`);
-    }
-  }
-  console.log("Seed complete.");
 }
 
 main()
