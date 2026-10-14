@@ -160,7 +160,7 @@ Sign in as the owner → **Menu**.
 - [x] Official moose logo, menu descriptions and 8 food photos are loaded from the printed menu
 - [ ] Optional: upload a **higher-resolution logo** (Business → Logo); the one cropped from the menu is ~250 px wide
 - [ ] Optional: add photos for dishes that don't have one yet (Menu → Edit → Photo)
-- [ ] Confirm the **Large Taco** ($9) and **Family Pack** ($80) prices. They are marked "price under review"
+- [ ] Confirm the **Family Pack** price ($80). It is marked "price under review"
 - [ ] Choose **operating days** (Schedule). Online preorders stay closed until you do
 - [ ] Enter the **phone, ZIP and hours** (Business). The email (ayaytacosmaine@gmail.com) and Facebook link are already set
 - [ ] Confirm the **sales tax** rate (currently 8%, Maine's prepared-food rate) with your accountant
